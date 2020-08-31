@@ -1,0 +1,284 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Put your code here:
+    // Instruction handling:
+    //      • instruction[16] consists of a 15 bit instruction and a 1 bit op_code. 
+    //      • op_code = instruction[15] (the most significant bit).
+    //      • When op_code = 0, we have an A-instruction
+    //          - an A-instruction will therefore store the value of instruction in the A-register. 
+    //      • When op_code = 1, we have a C-instruction. 
+    //          - a C-instruction will therefore store the value of the ALU-output into the A-register
+    //          - a C-instruction decodes instruction into multiple parts. 
+    //          - first, we note that instruction[14] and instruction[13] are ignored. 
+    //          - instruction[12] selects whether computation in the ALU is performed on the Address 
+    //            (A) or the memory (M)
+    //          - instruction[11..6] contain the ALU outputs
+    //              * zx = instruction[11]
+    //              * nx = instruction[10]
+    //              * zy = instruction[9]
+    //              * ny = instruction[8]
+    //              * f  = instruction[7]
+    //              * no = instruction[6]
+    //          - instruction[5..3] contain the destination load bits
+    //              * instruction[5] determines whether the A-register receives the ALU output
+    //              * instruction[4] determines whether the D-Register receives the ALU output
+    //          - instruction[2..0] contain the jump control bits
+    //              * 000 represents no jump: PC++
+    //              * 111 represents unconditional jump: PC = A
+    //              * for other combinations of bits, we have conditional goto:
+    //                              if condition is true, PC = A
+    //                              else PC++
+    //              * This conditional jump logic is explained later
+    //
+    // This AND gate serves as an identity gate, which decodes the instruction input into its constituent 
+    // parts as discussed above.
+    // note: out[13..14]=ignored_instruction_bits,
+    And16(  
+        a=instruction,
+        b=instruction, 
+        out[15]=opCode,
+        out[12]=AMselControlBit,            // not sure about this
+        out[11]=ALUzxControlBit,
+        out[10]=ALUnxControlBit,
+        out[9]=ALUzyControlBit,
+        out[8]=ALUnyControlBit,
+        out[7]=ALUfControlBit,
+        out[6]=ALUnoControlBit,
+        out[5]=AregisterDestinationControl,
+        out[4]=DregisterDestinationControl,
+        out[3]=MregisterDestinationControl,
+        out[2]=jumpLT,                      // jump if less than 0 boolean
+        out[1]=jumpEQ,                      // jump if equal to 0 boolean
+        out[0]=jumpGT                       // jump if greater than 0 boolean
+    );
+
+
+    // In this mux-gate, we decide whether to load the instruction into the A-register, or load the ALU output
+    // into the A-register. 
+    Mux16(
+        a=instruction,
+        b=ALUoutputMuxinput,  
+        sel=opCode,                      
+        out=MuxoutputAregisterInput
+    );
+
+    Not(
+        in=opCode, 
+        out=NotopCode
+    );
+
+    Or(
+        a=NotopCode, 
+        b=AregisterDestinationControl, 
+        out=AregisterLoad);
+    // This is the A-register
+    ARegister(   
+        in=MuxoutputAregisterInput, 
+        load=AregisterLoad,                   
+        out=AregisterOutput,
+        out[0..14]=addressM
+    );
+
+    // We only want to choose between A and M when opCode == 1 i.e. when we have a C-instruction.
+    Mux(
+        a=false, 
+        b=AMselControlBit, 
+        sel=opCode, 
+        out=AMsel
+    );
+
+    // This is the Mux gate that determines whether we are pushing the A value or the M value into the ALU. 
+    // The sel bit comes from the instruction input. 
+    Mux16(
+        a=AregisterOutput,
+        b=inM, 
+        sel=AMsel,      
+        out=AMregisterOutputALUinput, 
+        out=AMregisterOutputPCinput
+    );
+
+    // We only want to care about the D-register control bit on a C-instruction i.e. when opCode == 1.
+    And(
+        a=opCode, 
+        b=DregisterDestinationControl, 
+        out=DregisterLoad);
+
+    // The D-Register
+    DRegister(
+        in=ALUoutputDregisterInput, 
+        load=DregisterLoad, 
+        out=DregisterOutputALUinput
+    );
+
+
+
+    // The ALU. This takes inputs from the D-Register and the A/M-Register, is controlled by instruction, 
+    // and outputs into 3 different ALU outputs, as well as two control bits that indicate negative output
+    // and zero output. 
+    // The control outputs are used in conjunction with the jump bits (instruction[0..2])
+    ALU(x=DregisterOutputALUinput, 
+        y=AMregisterOutputALUinput, 
+        zx=ALUzxControlBit, 
+        nx=ALUnxControlBit, 
+        zy=ALUzyControlBit, 
+        ny=ALUnyControlBit, 
+        f=ALUfControlBit, 
+        no=ALUnoControlBit, 
+        out=outM,
+        out=ALUoutputMuxinput,
+        out=ALUoutputDregisterInput, 
+        zr=ALUisZero, 
+        ng=ALUisNegative
+    );
+
+
+    // If both the opcode is 1 (C-instruction) and the destination control bit for the M register is 1, 
+    // then writeM is true. 
+    And(
+        a=MregisterDestinationControl, 
+        b=opCode, 
+        out=writeM);
+
+
+    // The program counter. A reset bit is directly connected to it. 
+    // if 
+    //      reset==1, pc = 0
+    // else 
+    //      load = f(jump_bits, ALU_control_output)
+    //      if load==1
+    //          PC = A
+    //      else
+    //          PC++
+    //
+    // In implementing f(jump_bits, ALU_control_output), we need the specification of the jump bits 
+    // and their corresponding instruction set. this is given below. 
+    //  < = >
+    //  0 0 0     NULL      No jump
+    //  0 0 1     JGT       if out > 0, jump
+    //  0 1 0     JEQ       if out = 0, jump
+    //  0 1 1     JGE       if out ≥ 0, jump
+    //  1 0 0     JLT       if out < 0, jump
+    //  1 0 1     JNE       if out ≠ 0, jump
+    //  1 1 0     JLE       if out ≤ 0, jump
+    //  1 1 1     JMP       unconditional jump
+    //
+    // We note the following behavior
+    // j[0] & !ng & !ze              True whenever this bit is set and ALUOut > 0
+    // j[1] & ze                     True whenever this bit is set and ALUOut = 0
+    // j[2] & ng  & !ze              True whenver this bit is set and ALUOut ≤ 0
+    // Combining these bits in this way and OR-ing them all together will determine whether or not we want to load a new
+    // address into the Program Counter register (i.e. set load=1, thereby executing a jump) or to just increment the 
+    // counter (thereby not jumping)
+    //
+    // NOTE: There is *probably a neat way to do this using a Mux gate of some kind.
+
+    // Retrieve negations of ALU control outputs
+    Not(
+        in=ALUisNegative, 
+        out=NotALUisNegative
+    );
+
+    Not(
+        in=ALUisZero, 
+        out=NotALUisZero
+    );
+
+    // j[0] & !ng & !ze
+    And(
+        a=jumpGT, 
+        b=NotALUisNegative, 
+        out=tempGreaterThanBool
+    );
+
+    And(
+        a=tempGreaterThanBool, 
+        b=NotALUisZero, 
+        out=GreaterThanBool);
+
+    // j[1] & ze
+    And(
+        a=jumpEQ, 
+        b=ALUisZero, 
+        out=EqualBool
+    );
+
+    // j[2] & ng & !ze
+    And(
+        a=jumpLT, 
+        b=ALUisNegative, 
+        out=tempLessThanBool);
+
+    And(
+        a=tempLessThanBool, 
+        b=NotALUisZero, 
+        out=LessThanBool);
+
+    // Or the bools 
+    Or(
+        a=GreaterThanBool, 
+        b=EqualBool, 
+        out=tempBool
+    );
+
+    Or(
+        a=tempBool, 
+        b=LessThanBool, 
+        out=tempBool2
+    );
+
+    // We only care about all of this if we are currently doing a C-instruction. If we are in an A-instruction, 
+    // then we just want the program counter to increment regardless of the values of instruction. 
+    And(
+        a=tempBool2, 
+        b=opCode, 
+        out=PCload);
+
+    PC(
+        in=AMregisterOutputPCinput, 
+        load=PCload,                      
+        inc=true,                       // if either load==1 or reset==1, this value doesn't matter. 
+        reset=reset, 
+        out[0..14]=pc                          // pc is the address of the next instruction. 
+    );
+
+
+}
