@@ -1,0 +1,1 @@
+cc -o assembler assembler.c preprocess.c parse.c
