@@ -33,6 +33,7 @@ void initialize_linked_list(linked_list **head)
 
 void print_linked_list(linked_list * head)
 {
+    linked_list * current; 
     if(head == NULL)
     {
         printf("Error: no list available.\n");
@@ -51,26 +52,30 @@ void print_linked_list(linked_list * head)
 }
 
 
-void append_entry_to_end_of_list(linked_list * head, char * input_string, int address)
+void append_entry_to_end_of_list(linked_list **head, char * input_string, unsigned short address)
 {
     linked_list * new_entry;
+    linked_list * current;
+    int input_string_length = strlen(input_string);
+
     new_entry = malloc(sizeof(linked_list));
     if(new_entry == NULL)
     {
         printf("malloc() failed.\n");
+        return;
     }
-    linked_list * current = head;
-
-    new_entry->string = malloc(strlen(input_string)+1);
+    new_entry->string = malloc(input_string_length+1);
     if(new_entry->string == NULL)
     {
         printf("malloc() failed.\n");
     }
     strcpy(new_entry->string, input_string);
-    new_entry->string[strlen(input_string)] = '\0';
-
+    new_entry->string[input_string_length] = '\0';
     new_entry->address = address; 
+    new_entry->next = NULL;
+
     // Find last node
+    current = *head;
     while(current->next != NULL)
     {
         current = current->next;
