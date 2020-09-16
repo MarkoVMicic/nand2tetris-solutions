@@ -26,6 +26,7 @@ linked_list * initialize_linked_list(linked_list * head)
     }
     strcpy(head->string, HEAD_STRING);
     head->string[strlen(HEAD_STRING)] = '\0';
+    head->address = 0;
     head->next = NULL;
     return head;
 }
@@ -240,7 +241,7 @@ void delete_linked_list(linked_list **head)
 
 }
 
-
+// NOTE(Marko): Returning int because we are using negative numbers as error codes. 
 int retrieve_address_from_string_in_list(linked_list * head, char * input_string)
 {
     if(head == NULL)
@@ -266,65 +267,30 @@ int retrieve_address_from_string_in_list(linked_list * head, char * input_string
 }
 
 
-linked_list * retrieve_entry_by_address(linked_list * head, int address)
+int string_is_in_list(linked_list * head, char * input_string)
 {
-    linked_list * retrieved_entry = NULL;
-    linked_list *current = head; 
-    while(current->next != NULL)
+    if(head == NULL)
     {
-        if(current->address == address)
+        printf("Error: Empty linked list.\n");
+        return(-1);
+    }
+    linked_list * current = head;
+    while(current != NULL)
+    {   
+        if(strcmp(current->string, input_string) == 0)
         {
             break;
         }
         current = current->next;
     }
-    return(current);
-}
-
-
-
-// For testing.
-int main(int argc, char **argv)
-{
-    char * test_string1 = "test string 1";
-    int test_address1 = 12345;
-
-    char * test_string2 = "test string 2";
-    int test_address2 = 54321;
-
-    char * test_string3 = "test string 3";
-    int test_address3 = 123;
-
-    char * test_string4 = "test string 4";
-    int test_address4 = 321;
-
-    char * test_string5 = "test string 5";
-    int test_address5 = 1;
-
-    linked_list * table;
-    table = initialize_linked_list(table);
-    puts("Table initialized."); 
-    print_linked_list(table);
-
-    append_entry_to_end_of_list(table, test_string1, test_address1);
-    puts("Entry appended.");
-    print_linked_list(table);
-
-    append_entry_to_end_of_list(table, test_string2, test_address2);
-    puts("Entry appended.");
-    print_linked_list(table);
-
-    append_entry_to_end_of_list(table, test_string3, test_address3);
-    puts("Entry appended.");
-    print_linked_list(table);
-
-    add_entry_as_new_head_of_list(&table, test_string4, test_address4);
-    puts("Entry added as new head.");
-    print_linked_list(table);
-
-    add_entry_as_new_head_of_list(&table, test_string5, test_address5);
-    puts("Entry added as new head.");
-    print_linked_list(table);
-
-    return(0);
+    if(current == NULL)
+    {   
+        // String not found
+        return(0);
+    }
+    else
+    {
+        // string found. 
+        return(1);
+    }
 }
