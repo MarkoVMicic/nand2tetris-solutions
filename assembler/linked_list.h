@@ -12,10 +12,10 @@ void initialize_linked_list(linked_list ** head);
 void print_linked_list(linked_list * head);
 
 
-void append_entry_to_end_of_list(linked_list * head, char * input_string, int address);
+void append_entry_to_end_of_list(linked_list ** head, char * input_string, unsigned short address);
 
 
-void add_entry_as_new_head_of_list(linked_list **head, char * input_string, int address);
+void add_entry_as_new_head_of_list(linked_list ** head, char * input_string, unsigned short address);
 
 
 void remove_entry_from_beginning_of_list(linked_list **head);

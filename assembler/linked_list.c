@@ -85,7 +85,7 @@ void append_entry_to_end_of_list(linked_list **head, char * input_string, unsign
 }
 
 
-void add_entry_as_new_head_of_list(linked_list **head, char * input_string, int address)
+void add_entry_as_new_head_of_list(linked_list **head, char * input_string, unsigned short address)
 {
     linked_list * new_head;
     new_head = malloc(sizeof(linked_list));
@@ -177,7 +177,7 @@ void remove_entry_by_index(linked_list **head, int index)
 }
 
 
-void remove_entry_by_address(linked_list **head, int input_address)
+void remove_entry_by_address(linked_list **head, unsigned short input_address)
 {
     linked_list *current = *head;
     linked_list *temp_entry = NULL;
@@ -193,6 +193,7 @@ void remove_entry_by_address(linked_list **head, int input_address)
         {
             break;
         }
+        current = current->next;
     }
     temp_entry = current->next;
     if(temp_entry == NULL)
@@ -222,6 +223,7 @@ void remove_entry_by_string(linked_list **head, char * input_string)
         {
             break;
         }
+        current = current->next;
     }
     temp_entry = current->next;
     if(temp_entry == NULL)
