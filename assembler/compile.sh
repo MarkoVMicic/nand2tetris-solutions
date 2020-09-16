@@ -1,1 +1,1 @@
-cc -o assembler assembler.c preprocess.c parse.c
+cc -g -o assembler assembler.c preprocess.c parse.c linked_list.c
