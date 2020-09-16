@@ -52,7 +52,8 @@ void parse_c_instruction(char * current_line){
 
 // Not strictly necessary since we can simply output the machine code in reverse using a for loop. 
 // Mainly implementing this for coding practice. 
-int * reverse_array_order(int * array){
+int * reverse_array_order(int * array)
+{
 	int array_length = sizeof(array) / sizeof(array[0]);
 	int temp[array_length];
 	int i;
@@ -145,7 +146,8 @@ void parse_current_line(char * current_line){
 	}
 }
 
-const char * parse_line_and_update_to_next_line(const char *current_line){
+const char * parse_line_and_update_to_next_line(const char *current_line)
+{
 	const char * next_line;
 	char * temp_string;
 	int current_line_length;
@@ -159,11 +161,13 @@ const char * parse_line_and_update_to_next_line(const char *current_line){
 	current_line_length = next_line ? (next_line - current_line) : strlen(current_line);
 
 	temp_string = malloc(current_line_length+1);
-	if(temp_string){
+	if(temp_string)
+	{
 		memcpy(temp_string, current_line, current_line_length);
 		temp_string[current_line_length] = '\0';	// Null terminate the string
 	}
-	else {
+	else 
+	{
 		printf("malloc() failed!?\n");
 	}
 	printf("Current line: %s\n", temp_string);
@@ -173,16 +177,14 @@ const char * parse_line_and_update_to_next_line(const char *current_line){
 	return current_line;
 }
 
-void parse_asm_file(const char *asm_file){
-
+void parse_asm_string(const char *asm_string)
+{
 	const char * current_line;
 	char stop_string[100];
 
-	current_line = asm_file;	// initialize the current line pointer to point at start of asm_file
-	if(current_line[0] == '\n'){	// TODO(Marko): Skip the first line if it's just a blank line -- hacky bugfix that should be in preprocess.c
-		current_line++;
-}
-	while(current_line){
+	current_line = asm_string;	// initialize the current line pointer to point at start of asm_string
+	while(current_line)
+	{
 		current_line = parse_line_and_update_to_next_line(current_line);
 	}
 }
