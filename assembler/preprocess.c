@@ -5,7 +5,7 @@
 
 void insert_predefined_symbols_into_variable_table(linked_list * head)
 {
-	head = initialize_linked_list(head);
+
 	append_entry_to_end_of_list(head, "R0", 0);
 	append_entry_to_end_of_list(head, "R1", 1);
 	append_entry_to_end_of_list(head, "R2", 2);
@@ -30,16 +30,17 @@ void insert_predefined_symbols_into_variable_table(linked_list * head)
 	append_entry_to_end_of_list(head, "ARG", 2);
 	append_entry_to_end_of_list(head, "THIS", 3);
 	append_entry_to_end_of_list(head, "THAT", 4);
-	// remove initializing head value
-	remove_entry_from_beginning_of_list(&head);
-	print_linked_list(head);
 }
 
 char * preprocess_symbols(char *asm_string)
 {
 	linked_list * variable_table; 
+	variable_table = initialize_linked_list(variable_table);
 	// initialize variable_table with predefined symbols
 	insert_predefined_symbols_into_variable_table(variable_table);
+	// remove initializing head value
+	remove_entry_from_beginning_of_list(&variable_table);
+	print_linked_list(variable_table);
 	return asm_string;
 }
 
