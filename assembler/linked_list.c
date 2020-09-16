@@ -109,12 +109,8 @@ void remove_entry_from_beginning_of_list(linked_list **head)
     // remove current head node
     free((*head)->string);
     free(*head);
-    printf("%d\n", (int) head);
-    printf("%d\n", (int)(*head));
     // set head node to next node. 
     *head = next_entry;
-    printf("%d\n", (int) head);
-    printf("%d\n", (int)(*head));
 }
 
 
@@ -242,6 +238,31 @@ void delete_linked_list(linked_list **head)
         remove_entry_from_beginning_of_list(head);
     }
 
+}
+
+
+int retrieve_address_from_string_in_list(linked_list * head, char * input_string)
+{
+    if(head == NULL)
+    {
+        printf("Error: Empty linked list.\n");
+        return(-1);
+    }
+    linked_list * current = head;
+    while(current != NULL)
+    {   
+        if(strcmp(current->string, input_string) == 0)
+        {
+            break;
+        }
+        current = current->next;
+    }
+    if(current == NULL)
+    {
+        printf("Error: entry with string %s not found in linked list.\n", input_string);
+        return(-2);
+    }
+    return (int) current->address;
 }
 
 
