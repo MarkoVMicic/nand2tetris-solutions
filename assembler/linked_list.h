@@ -6,7 +6,7 @@ typedef struct linked_list
 } linked_list;
 
 
-linked_list * initialize_linked_list(linked_list * head);
+void initialize_linked_list(linked_list ** head);
 
 
 void print_linked_list(linked_list * head);

@@ -12,23 +12,22 @@ typedef struct linked_list
 } linked_list;
 
 
-linked_list * initialize_linked_list(linked_list * head)
+void initialize_linked_list(linked_list **head)
 {
-    head = malloc(sizeof(linked_list));
-    if(head == NULL)
+    *head = malloc(sizeof(linked_list));
+    if(*head == NULL)
     {
         printf("malloc() failed. \n");
     }
-    head->string = malloc(strlen(HEAD_STRING)+1);
-    if(head->string == NULL)
+    (*head)->string = malloc(strlen(HEAD_STRING)+1);
+    if((*head)->string == NULL)
     {
         printf("malloc() failed.\n");
     }
-    strcpy(head->string, HEAD_STRING);
-    head->string[strlen(HEAD_STRING)] = '\0';
-    head->address = 0;
-    head->next = NULL;
-    return head;
+    strcpy((*head)->string, HEAD_STRING);
+    (*head)->string[strlen(HEAD_STRING)] = '\0';
+    (*head)->address = 0;
+    (*head)->next = NULL;
 }
 
 
