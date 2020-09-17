@@ -418,6 +418,33 @@ int count_lines_in_string(char * string)
 }
 
 
+char * append_string_to_string(char * destination_string, char * source_string)
+{
+	/*
+		WARNINGS: 
+		(1) Make sure that destination_string has enough space allocated 
+		    to it after the null-terminator so that it can contain the
+		    contents of source_string, otherwise. you will start writing into unallocated memory which causes undefined behavior or segfault. 
+		(2) Make sure that both strings are actually null-terminated.
+		(3) Make sure that the pointer you pass to this function for both 
+		    strings are copies of the original string pointers, otherwise you
+		    will modify the original pointers causing weird behavior.  
+	*/
+	// Get to the end of the destination_string. 
+	while((*destination_string))
+	{
+		destination_string++;
+	}
+	// Copy contents of source into destination until you read a null 
+	// terminator
+	while((*destination_string++ = *source_string++)); 
+
+	// return a pointer to the end of the destination string -- ready for more 
+	// appending!
+	return(destination_string-1);
+}
+
+
 char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 {
 	char * modified_asm_string;
