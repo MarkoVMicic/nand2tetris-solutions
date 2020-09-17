@@ -368,8 +368,6 @@ void insert_variables_into_variable_table(char * asm_string,
 	while(current_line)
 	{
 		next_line = strchr(current_line, '\n');
-		// current_line_length includes all characters except for the
-		// \n character at the end of the line. 
 		current_line_length = next_line ? 
 			(next_line - current_line) : strlen(current_line);
 
@@ -383,7 +381,6 @@ void insert_variables_into_variable_table(char * asm_string,
 			}
 			memcpy(temp_string, current_line, current_line_length);
 			temp_string[current_line_length] = '\0';
-			// temp_string_no_at = temp_string + 1;
 			variable_string = malloc(current_line_length);
 			memcpy(variable_string, temp_string+1, current_line_length-1);
 			variable_string[current_line_length-1] = '\0';	
@@ -447,9 +444,81 @@ char * append_string_to_string(char * destination_string, char * source_string)
 
 char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 {
-	char * modified_asm_string;
+	/*
+		At this stage, every asm_string that gets to here (that is valid) will 
+		consist of an even number of lines, and every odd-numbered line will 
+		be a A-instruction line. Our goal is to replace A-instruction lines (
+		i.e. lines beginning with @) which contain a variable (i.e. not an 
+		explicit numerical address) with the corresponding numerical address 
+		found in our variable table. 
 
-	modified_asm_string = asm_string;
+		Since we can't realistically modify the asm_string in-place, we will instead create a new string and copy over the contents of the old string, replacing variables with the addresses as we go. 
+
+		The question then becomes: how much space do we need to allocate for this new string? 
+
+		The efficient way to do this is to first check the line-by-line character counts, substituting the character count of addresses wherever strings are, keeping track of the new count, then allocate the appropriate amount of memory. 
+
+		The easier way is to allocate for the worst possible case, where we write the largest possible numeral in place of the variable, and every A-instruction consists of a variable. In this case, we observe that the maximum number of unsigned short is 65535, which, in character form, is 5 bytes. Thus the largest string for an A-instruction will be 6 bytes. For C-instructions, the worst possible case is a string that looks like AMD=D+A;JMP  which is 11 bytes. So we take line_count*(11+6)/2 = line_count*17/2 bytes. add 1 byte for the null-terminator. 
+	*/
+	int line_count;
+	int max_a_instruction_line_length = 6;
+	int max_c_instruction_line_length = 11;
+	int modified_asm_string_max_length;
+	int current_line_length;
+	unsigned short address;
+
+
+	char * modified_asm_string;
+	char * ptr_mod_string;
+	char * current_line;
+	char * next_line; 
+	char * temp_string;
+
+	line_count = count_lines_in_string(asm_string);
+	// Remove blank line at end of program from line count. 
+	if(line_count % 2)
+	{
+		line_count--;
+	}
+	
+	modified_asm_string_max_length = line_count * 
+		(max_a_instruction_line_length + max_c_instruction_line_length) / 2;
+
+	modified_asm_string = malloc(modified_asm_string_max_length + 1);
+	modified_asm_string[0] = '\0';
+	ptr_mod_string = modified_asm_string;
+
+	current_line = asm_string;
+	while(current_line)
+	{
+		next_line = strchr(current_line, '\n');
+		current_line_length = next_line ? 
+			(next_line - current_line) : strlen(current_line);
+		temp_string = malloc(current_line_length+2);
+		if(current_line[0] == '@' && 
+			(strchr(NUMERIC_STRING, current_line[1]) == 0))
+		{
+			// Replace variable with address in variable table 
+			memcpy(temp_string, current_line, current_line_length);
+			temp_string[current_line_length] = '\n';
+			temp_string[current_line_length+1] = '\0';
+			ptr_mod_string = append_string_to_string(ptr_mod_string,
+													 temp_string); 
+		}
+		else
+		{
+			// Copy the string over as is. 
+			memcpy(temp_string, current_line, current_line_length);
+			temp_string[current_line_length] = '\n';
+			temp_string[current_line_length+1] = '\0';
+			ptr_mod_string = append_string_to_string(ptr_mod_string,
+													 temp_string);
+		}
+
+		free(temp_string);
+		current_line = next_line ? next_line + 1 : NULL;
+	}
+
 
 	return modified_asm_string;
 }
@@ -493,7 +562,7 @@ char * preprocess_symbols(char *asm_string)
 	asm_string = remove_whitespace(asm_string);
 	asm_string = remove_blank_lines(asm_string);
 
-	// asm_string = replace_symbols_with_addresses(asm_string, &variable_table);
+	asm_string = replace_symbols_with_addresses(asm_string, &variable_table);
 
 	delete_linked_list(&variable_table);
 	return asm_string;
