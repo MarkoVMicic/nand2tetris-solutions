@@ -221,6 +221,21 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 			label_string = malloc(label_string_length);
 			memcpy(label_string, temp_string+1, label_string_length);
 			label_string[label_string_length-1] = '\0';
+			if(string_is_in_list(*head, label_string) == 1)
+			{
+				// TODO(Marko): Error handling -- for now we just print a statement, and 
+				//				still add the value to the list at the end. The resultant
+				//				behavior is to just default to using the first value in the table
+				//				when preprocessing the @<label_string> statement, which could 
+				//				result in bad behavior in the program -- ideally we want to abort
+				//				the assembly process instead of just warning the programmer that 
+				//				they've made a mistake. 
+				printf("Error: label (%s) is already in the table. \n", label_string);
+				printf("Either you have tried to use a predefined symbol as a label, ");
+				printf("or you have a duplicate label (the same label cannot demarcate");
+				printf("multiple places in the program).\n");
+
+			}
 			append_entry_to_end_of_list(head, label_string, (unsigned short)line_count);
 			free(label_string);
 		}
