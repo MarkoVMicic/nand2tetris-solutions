@@ -277,6 +277,90 @@ void insert_variables_into_variable_table(char * asm_string,
 
 	allowed_variable_count = VARIABLE_MEMORY_BLOCK_END - 
 							 VARIABLE_MEMORY_BLOCK_START;
+	/*
+		let + denote the newline char '\n', and • denote the null-terminator char '\0'. Then we have this setup: 
+
+						current_line_length
+					 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+					{							  }
+		asm_string: @123456789098765432123456789098+abcdef...
+					^							   ^
+					|							   |
+					|							   |
+				current_line 				   next_line
+
+		temp_line will contain everything from current_line pointer to 
+		next_line pointer without the \n character. This means we cannot
+		just use strchr(temp_string, '\n'); to find the end of temp_string
+		the way we have done in other functions. Note the structure of 
+		temp_string, given to us because we allocate using 
+		malloc(current_line_length+1). Suppose we use • to denote the null-terminate string '\0', then we get the following result:
+
+		temp_string = malloc(current_line_length+1); // allocating 32 bytes in this e.g.
+
+						    current_line_length = 31
+						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+						 {							   }
+			temp_string: @*******************************
+														^
+														|
+													+1 byte here
+		memcpy(temp_string, current_line, current_line_length); // copying first 31 bytes
+							 current_line_length = 31
+						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+						 {							   }
+			asm_string:  @123456789012345678901234567890+abcdef...
+						 |||||||||||||||||||||||||||||||
+						 |||||||||||||||||||||||||||||||
+						 |||||||||||||||||||||||||||||||
+			temp_string: @123456789012345678901234567890*	32 bytes
+						 {							   }
+						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+						     current_line_length = 31
+
+		temp_string[current_line_length] = '\0';	   // setting 32nd byte to •
+
+						     current_line_length = 31
+						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+						 {							   }
+			temp_string: @123456789012345678901234567890•	32 bytes
+
+		we want to retrieve everything after the @, so we can just:
+
+		char * var_string = malloc(current_line_length); // allocating 31 bytes
+
+    					      current_line_length
+    					  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+    					 {							   }
+			temp_string: @123456789012345678901234567890•	32 bytes
+
+			var_string:  *******************************	31 bytes
+     					 {							   }
+     					  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+							current_line_length							
+
+		memcpy(var_string, temp_string+1, current_line_length-1); // copying 30 bytes
+    					      current_line_length
+    					  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+    					 {							   }
+			temp_string: @123456789012345678901234567890•	32 bytes
+						  ||||||||||||||||||||||||||||||
+						 //////////////////////////////
+						 ||||||||||||||||||||||||||||||
+			var_string:  123456789012345678901234567890*	31 bytes
+     					 {							   }
+     					  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+							current_line_length							
+
+		var_string[current_line_length-1] = '\0' // Setting 31st byte to •
+						 
+			var_string:  123456789012345678901234567890•	31 bytes
+     					 {							   }
+     					  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+							current_line_length							
+
+
+	*/
 	while(current_line)
 	{
 		next_line = strchr(current_line, '\n');
@@ -302,7 +386,6 @@ void insert_variables_into_variable_table(char * asm_string,
 			if((string_is_in_list(*head, variable_string) == 0) &&
 				(variable_address <= VARIABLE_MEMORY_BLOCK_END))
 			{
-				printf("Appending string %s address %d\n\n", variable_string, variable_address);
 				append_entry_to_end_of_list(head, variable_string, 
 											variable_address);
 				variable_address++;
@@ -353,15 +436,16 @@ char * preprocess_symbols(char *asm_string)
 	insert_predefined_symbols_into_variable_table(&variable_table);
 
 	insert_labels_into_variable_table(asm_string, &variable_table);
+	insert_variables_into_variable_table(asm_string, &variable_table);
 	// Get rid of extraneous head part. 
 	remove_entry_from_beginning_of_list(&variable_table);
+	print_linked_list(variable_table);
+
 	asm_string = remove_labels(asm_string);
 	asm_string = remove_whitespace(asm_string);
 	asm_string = remove_blank_lines(asm_string);
 
-	insert_variables_into_variable_table(asm_string, &variable_table);
-
-	asm_string = replace_symbols_with_addresses(asm_string, &variable_table);
+	// asm_string = replace_symbols_with_addresses(asm_string, &variable_table);
 
 	delete_linked_list(&variable_table);
 	return asm_string;
