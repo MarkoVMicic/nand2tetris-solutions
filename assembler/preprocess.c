@@ -271,7 +271,6 @@ void insert_variables_into_variable_table(char * asm_string,
 	char * next_line;
 	char * current_line = asm_string;
 	char * temp_string;
-	char * temp_string_no_at; 
 	char * variable_string = NULL; 
 	char * end_of_variable_string;
 
@@ -379,9 +378,9 @@ void insert_variables_into_variable_table(char * asm_string,
 			}
 			memcpy(temp_string, current_line, current_line_length);
 			temp_string[current_line_length] = '\0';
-			temp_string_no_at = temp_string + 1;
+			// temp_string_no_at = temp_string + 1;
 			variable_string = malloc(current_line_length);
-			memcpy(variable_string, temp_string_no_at, current_line_length-1);
+			memcpy(variable_string, temp_string+1, current_line_length-1);
 			variable_string[current_line_length-1] = '\0';	
 			if((string_is_in_list(*head, variable_string) == 0) &&
 				(variable_address <= VARIABLE_MEMORY_BLOCK_END))
