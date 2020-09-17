@@ -101,11 +101,10 @@ char * remove_whitespace(char *asm_string)
 {
 	int count;
 	int i;
-
+	int string_length = strlen(asm_string);
 
 	count = 0;
-	for(i = 0; asm_string[i]; i++)
-	for(i = 0; asm_string[i] != '\0'; i++)
+	for(i = 0; i < string_length; i++)	
 	{
 		if(asm_string[i] != ' ')
 		{
@@ -122,9 +121,10 @@ char * remove_carriage_returns(char *asm_string)
 {
 	int count;
 	int i;
+	int string_length = strlen(asm_string);
 
 	count = 0;
-	for(i = 0; asm_string[i]; i++)
+	for(i = 0; i < string_length; i++)	
 	{
 		if(asm_string[i] != '\r')
 		{
@@ -140,9 +140,10 @@ char * remove_tabs(char *asm_string)
 {
 	int count;
 	int i;
+	int string_length = strlen(asm_string);
 
 	count = 0;
-	for(i = 0; asm_string[i]; i++)
+	for(i = 0; i < string_length; i++)
 	{
 		if(asm_string[i] != 9)
 		{
@@ -158,9 +159,10 @@ char * remove_consecutive_newlines(char *asm_string)
 {
 	int count;
 	int i;
+	int string_length = strlen(asm_string);
 
 	count = 0;
-	for(i = 0; asm_string[i]; i++)
+	for(i = 0; i < string_length; i++)
 	{
 		if((asm_string[i] != '\n') || ((i > 0) && (asm_string[i-1] != '\n')))
 		{
@@ -188,7 +190,8 @@ char * remove_comments(char *asm_string)
 	int j;
 	int k;
 
-	for(i = 0; asm_string[i]; i++)
+	int string_length = strlen(asm_string);
+	for(i = 0; i < string_length; i++)
 	{
 		if(asm_string[i] == '/')
 		{			// First slash
@@ -202,6 +205,9 @@ char * remove_comments(char *asm_string)
 				}
 				for(k=0; k < j-i; k++)
 				{
+					// TODO(Marko): Right now I'm just filling every commented char with a space. I would
+					// 				like to find a more elegant solution for this, even though I call a 
+					//				function after this that removes spaces.  
 					asm_string[i+k] = ' ';
 				}
 			}
