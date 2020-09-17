@@ -6,6 +6,8 @@
 #define VARIABLE_MEMORY_BLOCK_START 5000
 #define VARIABLE_MEMORY_BLOCK_END 15000
 
+#define NUMERIC_STRING "0123456789"
+
 
 char * remove_whitespace(char *asm_string)
 {
@@ -262,7 +264,54 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 void insert_variables_into_variable_table(char * asm_string, 
 										  linked_list **head)
 {
+	int variable_address = VARIABLE_MEMORY_BLOCK_START;
+	int allowed_variable_count; 
+	int current_line_length;
 
+	char * next_line;
+	char * current_line = asm_string;
+	char * temp_string;
+	char * temp_string_no_at; 
+	char * variable_string = NULL; 
+	char * end_of_variable_string;
+
+	allowed_variable_count = VARIABLE_MEMORY_BLOCK_END - 
+							 VARIABLE_MEMORY_BLOCK_START;
+	while(current_line)
+	{
+		next_line = strchr(current_line, '\n');
+		// current_line_length includes all characters except for the
+		// \n character at the end of the line. 
+		current_line_length = next_line ? 
+			(next_line - current_line) : strlen(current_line);
+
+		if(current_line[0] == '@' && (
+			strchr(NUMERIC_STRING, current_line[1]) == NULL))
+		{
+			temp_string = malloc(current_line_length+1);
+			if(temp_string == NULL)
+			{
+				printf("malloc() failed.\n");
+			}
+			memcpy(temp_string, current_line, current_line_length);
+			temp_string[current_line_length] = '\0';
+			temp_string_no_at = temp_string + 1;
+			variable_string = malloc(current_line_length);
+			memcpy(variable_string, temp_string_no_at, current_line_length-1);
+			variable_string[current_line_length-1] = '\0';	
+			if((string_is_in_list(*head, variable_string) == 0) &&
+				(variable_address <= VARIABLE_MEMORY_BLOCK_END))
+			{
+				printf("Appending string %s address %d\n\n", variable_string, variable_address);
+				append_entry_to_end_of_list(head, variable_string, 
+											variable_address);
+				variable_address++;
+			}
+			free(variable_string);
+			free(temp_string);
+		}
+		current_line = next_line ? next_line + 1 : NULL;
+	}
 }
 
 char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
