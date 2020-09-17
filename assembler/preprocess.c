@@ -248,6 +248,21 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 		current_line = next_line ? next_line + 1 : NULL;
 	}
 }
+
+void insert_variables_into_variable_table(char * asm_string, linked_list **head)
+{
+
+}
+
+char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
+{
+	char * modified_asm_string;
+
+	modified_asm_string = asm_string;
+
+	return modified_asm_string;
+}
+
 char * preprocess_symbols(char *asm_string)
 {
 	/*
