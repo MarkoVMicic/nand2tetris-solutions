@@ -8,6 +8,11 @@
 
 #define NUMERIC_STRING "0123456789"
 
+// NOTE(Marko): if we were dealing with truly massive programs, instead of
+// 				trying to maintain the string on the stack, we could just
+//				read and write line-by-line into an intermediate file, 
+//				overwriting that file each time.  
+
 
 char * remove_whitespace(char *asm_string)
 {
@@ -395,6 +400,23 @@ void insert_variables_into_variable_table(char * asm_string,
 		current_line = next_line ? next_line + 1 : NULL;
 	}
 }
+
+
+int count_lines_in_string(char * string)
+{
+	int line_count = 0;
+	char * current_line = string;
+	char * next_line;
+	while(current_line)
+	{
+		next_line = strchr(current_line, '\n');
+		current_line = next_line ? next_line + 1 : NULL;
+		line_count++;
+
+	}
+	return(line_count);
+}
+
 
 char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 {
