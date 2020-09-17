@@ -127,6 +127,37 @@ char * remove_comments(char *asm_string)
 }
 
 
+char * remove_labels(char * asm_string)
+{
+	// Remove labels once we put them into variable table. 
+	int i;
+	int j;
+	int k;
+
+	int string_length = strlen(asm_string);
+	for(i=0; i < string_length; i++)
+	{
+		if(asm_string[i] == '(')
+		{
+			j = i;
+			// TODO(Marko): should probably check for end of string too 
+			while(asm_string[j] != '\n')
+			{
+				j++;
+			}
+			for(k=0; k < j-i; k++)
+			{
+				// TODO(Marko): Right now I'm just filling every commented char with a space. I would
+				// 				like to find a more elegant solution for this, even though I call a 
+				//				function after this that removes spaces.  
+				asm_string[i+k] = ' ';
+			}
+		}
+	}
+	return asm_string;
+}
+
+
 void insert_predefined_symbols_into_variable_table(linked_list ** head)
 {
 
