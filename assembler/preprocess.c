@@ -115,9 +115,11 @@ char * remove_comments(char *asm_string)
 				}
 				for(k=0; k < j-i; k++)
 				{
-					// TODO(Marko): Right now I'm just filling every commented char with a space. I would
-					// 				like to find a more elegant solution for this, even though I call a 
-					//				function after this that removes spaces.  
+					// TODO(Marko): Right now I'm just filling every commented 
+					//				char with a space. I would like to find a 
+					// 				more elegant solution for this, even 
+					//				though I call a function after this that 
+					// 				removes spaces.  
 					asm_string[i+k] = ' ';
 				}
 			}
@@ -147,9 +149,10 @@ char * remove_labels(char * asm_string)
 			}
 			for(k=0; k < j-i; k++)
 			{
-				// TODO(Marko): Right now I'm just filling every commented char with a space. I would
-				// 				like to find a more elegant solution for this, even though I call a 
-				//				function after this that removes spaces.  
+				// TODO(Marko): Right now I'm just filling every commented 
+				//				char with a space. I would like to find a more 
+				//			    elegant solution for this, even though I call 
+				//				a function after this that removes spaces.  
 				asm_string[i+k] = ' ';
 			}
 		}
@@ -205,7 +208,8 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 	while(current_line) 
 	{	
 		next_line = strchr(current_line, '\n');
-		current_line_length = next_line ? (next_line - current_line) : strlen(current_line);
+		current_line_length = next_line ? 
+			(next_line - current_line) : strlen(current_line);
 
 		temp_string = malloc(current_line_length+1);
 		if(temp_string == NULL)
@@ -223,25 +227,31 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 			label_string[label_string_length-1] = '\0';
 			if(string_is_in_list(*head, label_string) == 1)
 			{
-				// TODO(Marko): Error handling -- for now we just print a statement, and 
-				//				still add the value to the list at the end. The resultant
-				//				behavior is to just default to using the first value in the table
-				//				when preprocessing the @<label_string> statement, which could 
-				//				result in bad behavior in the program -- ideally we want to abort
-				//				the assembly process instead of just warning the programmer that 
-				//				they've made a mistake. 
-				printf("Error: label (%s) is already in the table. \n", label_string);
-				printf("Either you have tried to use a predefined symbol as a label, ");
-				printf("or you have a duplicate label (the same label cannot demarcate");
-				printf("multiple places in the program).\n");
+				// TODO(Marko): Error handling -- for now we just print a 
+				//				statement, and still add the value to the list 
+				//				at the end. The resultant behavior is to just 
+				// 				default to using the first value in the table
+				//				when preprocessing the @<label_string> 
+				// 				statement, which could result in bad behavior 
+				//				in the program -- ideally we want to abort
+				//				the assembly process instead of just warning 
+				//				the programmer that they've made a mistake. 
+				printf("Error: label (%s) is already in the table. \n",
+				 	label_string);
+				printf("Either you have tried to use a predefined symbol as"); 
+				printf("a lable, or you have a duplicate label (the same ");
+				printf("label cannot demarcate multiple places in the ");
+				printf("program).\n");
 
 			}
-			append_entry_to_end_of_list(head, label_string, (unsigned short)line_count);
+			append_entry_to_end_of_list(head, label_string, 
+										(unsigned short)line_count);
 			free(label_string);
 		}
 		else
 		{
-			// Increment line count when you aren't processing the bracketed label.
+			// Increment line count when you aren't processing the bracketed 
+			// label.
 			line_count++;
 		}
 		free(temp_string);
@@ -249,7 +259,8 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 	}
 }
 
-void insert_variables_into_variable_table(char * asm_string, linked_list **head)
+void insert_variables_into_variable_table(char * asm_string, 
+										  linked_list **head)
 {
 
 }
@@ -270,19 +281,23 @@ char * preprocess_symbols(char *asm_string)
 			1. Predefined symbols
 			2. Labels (things that appear in brackets)
 			3. variables. 
-		All are handled the same way: put in linked list with associated address, then go through
-		the string and replace the variables with the address. 
+		All are handled the same way: put in linked list with associated 
+		address, then go through the string and replace the variables with the 
+		address. 
 
 		Notes:
-			• The addresses of labels are guaranteed not to collide with each other since they can 
-			  only occupy one line. 
-			• It does not matter if the addresses of labels collide with the addresses of  
-			  predefined symbols or with the addresses of variables because labels correspond to 
-			  ROM addresses, while the other two correspond to RAM addresses. 
-			• To prevent RAM collisions, we define some VARIABLE_MEMORY_BLOCK_START and 
-			  VARIABLE_MEMORY_BLOCK_END range to store variables in some defined place in memory. 
-			  For now, I'm going to assume that a programmer is not going to use more than 10000
-			  variables in their code. I'll allocate registers 5000 - 15000. 
+			• The addresses of labels are guaranteed not to collide with each 
+			  other since they can only occupy one line. 
+			• It does not matter if the addresses of labels collide with the 
+			  addresses of predefined symbols or with the addresses of 
+			  variables because labels correspond to ROM addresses, while the 
+			  other two correspond to RAM addresses. 
+			• To prevent RAM collisions, we define some 
+			  VARIABLE_MEMORY_BLOCK_START and VARIABLE_MEMORY_BLOCK_END range 
+			  to store variables in some defined place in memory. For now, I'm 
+			  going to assume that a programmer is not going to use more than 
+			  10000 variables in their code. I'll allocate registers 5000 - 
+			  15000. 
 	*/
 	linked_list * variable_table; 
 	initialize_linked_list(&variable_table);
@@ -329,7 +344,8 @@ char * open_file_store_as_string(const char *file_path)
 		fseek(file, 0, SEEK_END);
 		length = ftell(file);
 		fseek(file, 0, SEEK_SET);
-		asm_string = malloc(length+1);		// allocate the asm_string -- remember to free this when done! 
+		// allocate the asm_string -- remember to free this when done! 
+		asm_string = malloc(length+1);		
 		if (asm_string)
 		  {
 		    fread(asm_string, 1, length, file);

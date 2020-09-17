@@ -13,14 +13,16 @@ int main(int argc, char **argv)
 	if(argc != 2)
 	{
 		printf("Usage: Supply the file path of the assembly file to be ");
-		printf("translated into machine code as the first argument of this program.\n ");
+		printf("translated into machine code as the first argument of ");
+		printf("this program.\n ");
 		return(1);
 	}
 	// program_name = argv[0];
 	file_path = argv[1];
 	if(file_path[0] == '\0')
 	{
-		printf("File_path is an empty string (or the first character is \\0).\n");
+		printf("File_path is an empty string or the first character is \\0.");
+		printf("\n");
 		printf("Aborting program... ");
 		return(1);
 	}
@@ -32,6 +34,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	asm_string = process_asm_string(asm_string);
+	// puts(asm_string);
 	// parse_asm_string(asm_string);
 
 	free(asm_string);			// Freeing the malloc'd string

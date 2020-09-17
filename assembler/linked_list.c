@@ -52,7 +52,8 @@ void print_linked_list(linked_list * head)
 }
 
 
-void append_entry_to_end_of_list(linked_list **head, char * input_string, unsigned short address)
+void append_entry_to_end_of_list(linked_list **head, char * input_string, 
+                                 unsigned short address)
 {
     linked_list * new_entry;
     linked_list * current;
@@ -85,7 +86,8 @@ void append_entry_to_end_of_list(linked_list **head, char * input_string, unsign
 }
 
 
-void add_entry_as_new_head_of_list(linked_list **head, char * input_string, unsigned short address)
+void add_entry_as_new_head_of_list(linked_list **head, char * input_string, 
+                                   unsigned short address)
 {
     linked_list * new_head;
     new_head = malloc(sizeof(linked_list));
@@ -164,7 +166,8 @@ void remove_entry_by_index(linked_list **head, int index)
         if(current->next == NULL) // Already reached end of the list
         {
             printf("Error: Index out of bounds of linked list. \n");
-            // NOTE(Marko): Should this function be int that returns an error-code? 
+            // NOTE(Marko): Should this function be int that returns an 
+            //              error-code? 
             return; 
         }
         current = current->next; 
@@ -198,7 +201,8 @@ void remove_entry_by_address(linked_list **head, unsigned short input_address)
     temp_entry = current->next;
     if(temp_entry == NULL)
     {
-        printf("Error: Entry with address %d not found in linked list.\n", input_address);
+        printf("Error: Entry with address %d not found in linked list.\n", 
+               input_address);
         return;
     }
     current->next = temp_entry->next; 
@@ -228,7 +232,8 @@ void remove_entry_by_string(linked_list **head, char * input_string)
     temp_entry = current->next;
     if(temp_entry == NULL)
     {
-        printf("Error: Entry with string %s not found in linked list.\n", input_string);
+        printf("Error: Entry with string %s not found in linked list.\n", 
+                input_string);
         return;
     }
     current->next = temp_entry->next; 
@@ -247,8 +252,10 @@ void delete_linked_list(linked_list **head)
 
 }
 
-// NOTE(Marko): Returning int because we are using negative numbers as error codes. 
-int retrieve_address_from_string_in_list(linked_list * head, char * input_string)
+// NOTE(Marko): Returning int because we are using negative numbers as error 
+//              codes. 
+int retrieve_address_from_string_in_list(linked_list * head, 
+                                         char * input_string)
 {
     if(head == NULL)
     {
@@ -266,7 +273,8 @@ int retrieve_address_from_string_in_list(linked_list * head, char * input_string
     }
     if(current == NULL)
     {
-        printf("Error: entry with string %s not found in linked list.\n", input_string);
+        printf("Error: entry with string %s not found in linked list.\n", 
+               input_string);
         return(-2);
     }
     return (int) current->address;
