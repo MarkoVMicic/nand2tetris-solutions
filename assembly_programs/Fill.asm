@@ -151,12 +151,3 @@
 		M=M+1				// address++
 		@EMPTYSCREENLOOP
 		0;JMP 				// jump to beginning of loop. 
-
-
-
-
-
-
-
-
-
