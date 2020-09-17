@@ -3,6 +3,9 @@
 #include <string.h>
 #include "linked_list.h"
 
+#define VARIABLE_MEMORY_BLOCK_START 5000
+#define VARIABLE_MEMORY_BLOCK_END 15000
+
 
 char * remove_whitespace(char *asm_string)
 {
