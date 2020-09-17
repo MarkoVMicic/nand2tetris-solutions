@@ -236,12 +236,13 @@ char * open_file_store_as_string(const char *file_path)
 		fseek(file, 0, SEEK_END);
 		length = ftell(file);
 		fseek(file, 0, SEEK_SET);
-		asm_string = malloc(length);		// allocate the asm_string -- remember to free this when done! 
+		asm_string = malloc(length+1);		// allocate the asm_string -- remember to free this when done! 
 		if (asm_string)
 		  {
 		    fread(asm_string, 1, length, file);
 		  }
 		  fclose(file);
+		asm_string[length] = '\0';
 	}
 	else
 	{
