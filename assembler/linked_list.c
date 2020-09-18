@@ -254,15 +254,15 @@ void delete_linked_list(linked_list **head)
 
 // NOTE(Marko): Returning int because we are using negative numbers as error 
 //              codes. 
-int retrieve_address_from_string_in_list(linked_list * head, 
+int retrieve_address_from_string_in_list(linked_list ** head, 
                                          char * input_string)
 {
-    if(head == NULL)
+    if(*head == NULL)
     {
         printf("Error: Empty linked list.\n");
         return(-1);
     }
-    linked_list * current = head;
+    linked_list * current = *head;
     while(current != NULL)
     {   
         if(strcmp(current->string, input_string) == 0)

@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	asm_string = process_asm_string(asm_string);
-	puts(asm_string);
+	// puts(asm_string);
 	// parse_asm_string(asm_string);
 
 	free(asm_string);			// Freeing the malloc'd string

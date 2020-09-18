@@ -309,17 +309,18 @@ void insert_variables_into_variable_table(char * asm_string,
 														^
 														|
 													+1 byte here
-		memcpy(temp_string, current_line, current_line_length); // copying first 31 bytes
+		// copying first 31 bytes											
+				memcpy(temp_string, current_line, current_line_length); 
 							 current_line_length = 31
-						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
-						 {							   }
-			asm_string:  @123456789012345678901234567890+abcdef...
-						 |||||||||||||||||||||||||||||||
-						 |||||||||||||||||||||||||||||||
-						 |||||||||||||||||||||||||||||||
-			temp_string: @123456789012345678901234567890*	32 bytes
-						 {							   }
-						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+							  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+							 {							   }
+				asm_string:  @123456789012345678901234567890+abcdef...
+							 |||||||||||||||||||||||||||||||
+							 |||||||||||||||||||||||||||||||
+							 |||||||||||||||||||||||||||||||
+				temp_string: @123456789012345678901234567890*	32 bytes
+							 {							   }
+							  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
 						     current_line_length = 31
 
 		temp_string[current_line_length] = '\0';	   // setting 32nd byte to •
@@ -442,28 +443,55 @@ char * append_string_to_string(char * destination_string, char * source_string)
 }
 
 
+// TODO(Marko): Possible issue with types int vs unsigned short. Investigate
+char * convert_int_to_string(int address)
+{
+	// NOTE(Marko): I'm sneaking in a newline char here coz I need to. 
+	int string_length = snprintf(NULL, 0, "%d", address);
+	char * string = malloc(string_length+2);
+	snprintf(string, string_length+2, "%d", address);
+	string[string_length] = '\n';
+	string[string_length+1] = '\0';
+	return string;
+}
+
+
 char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 {
 	/*
 		At this stage, every asm_string that gets to here (that is valid) will 
-		consist of an even number of lines, and every odd-numbered line will 
-		be a A-instruction line. Our goal is to replace A-instruction lines (
-		i.e. lines beginning with @) which contain a variable (i.e. not an 
-		explicit numerical address) with the corresponding numerical address 
-		found in our variable table. 
+		consist of some number of lines. Our goal is to replace A-instruction 
+		lines (i.e. lines beginning with @) which contain a variable (i.e. not 
+		an explicit numerical address) with the corresponding numerical 
+		address found in our variable table. 
 
-		Since we can't realistically modify the asm_string in-place, we will instead create a new string and copy over the contents of the old string, replacing variables with the addresses as we go. 
+		Since we can't realistically modify the asm_string in-place, we will 
+		instead create a new string and copy over the contents of the old 
+		string, replacing variables with the addresses as we go. 
 
-		The question then becomes: how much space do we need to allocate for this new string? 
+		The question then becomes: how much space do we need to allocate for 
+		this new string? 
 
-		The efficient way to do this is to first check the line-by-line character counts, substituting the character count of addresses wherever strings are, keeping track of the new count, then allocate the appropriate amount of memory. 
+		The efficient way to do this is to first check the line-by-line 
+		character counts, substituting the character count of addresses 
+		wherever strings are, keeping track of the new count, then allocate 
+		the appropriate amount of memory. 
 
-		The easier way is to allocate for the worst possible case, where we write the largest possible numeral in place of the variable, and every A-instruction consists of a variable. In this case, we observe that the maximum number of unsigned short is 65535, which, in character form, is 5 bytes. Thus the largest string for an A-instruction will be 6 bytes. For C-instructions, the worst possible case is a string that looks like AMD=D+A;JMP  which is 11 bytes. So we take line_count*(11+6)/2 = line_count*17/2 bytes. add 1 byte for the null-terminator. 
+		The easier way is to allocate for the worst possible case, where we 
+		write the largest possible numeral in place of the variable, and every 
+		A-instruction consists of a variable. In this case, we observe that 
+		the maximum number of unsigned short is 65535, which, in character 
+		form, is 5 bytes. Thus the largest string for an A-instruction will be 
+		6 bytes. For C-instructions, the worst possible case is a string that 
+		looks like AMD=D+A;JMP\n  which is 12 bytes. So the assumption is 
+		simply that we have a program full of the longest possible D 
+		instruction repeated on every line, line_count*12, add 1 byte for the 
+		null-terminator. 
 	*/
 	int line_count;
-	int max_a_instruction_line_length = 6;
-	int max_c_instruction_line_length = 11;
+	int max_line_length = 12;
 	int modified_asm_string_max_length;
+	int modified_asm_string_length;
 	int current_line_length;
 	unsigned short address;
 
@@ -473,6 +501,8 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 	char * current_line;
 	char * next_line; 
 	char * temp_string;
+	char * variable_string;
+	char * address_string; 
 
 	line_count = count_lines_in_string(asm_string);
 	// Remove blank line at end of program from line count. 
@@ -481,14 +511,14 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 		line_count--;
 	}
 	
-	modified_asm_string_max_length = line_count * 
-		(max_a_instruction_line_length + max_c_instruction_line_length) / 2;
+	modified_asm_string_max_length = line_count * max_line_length;
 
 	modified_asm_string = malloc(modified_asm_string_max_length + 1);
 	modified_asm_string[0] = '\0';
 	ptr_mod_string = modified_asm_string;
 
 	current_line = asm_string;
+	int i=1;
 	while(current_line)
 	{
 		next_line = strchr(current_line, '\n');
@@ -498,12 +528,20 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 		if(current_line[0] == '@' && 
 			(strchr(NUMERIC_STRING, current_line[1]) == 0))
 		{
-			// Replace variable with address in variable table 
+			// Replace variable with address in variable table
+			// TODO(Marko): Implement 
 			memcpy(temp_string, current_line, current_line_length);
-			temp_string[current_line_length] = '\n';
-			temp_string[current_line_length+1] = '\0';
+			temp_string[current_line_length] = '\0';
+			variable_string = malloc(current_line_length);
+			memcpy(variable_string, temp_string+1, current_line_length-1);
+			variable_string[current_line_length-1] = '\0';
+			address = retrieve_address_from_string_in_list(head, 
+                                         variable_string);
+			address_string = convert_int_to_string(address);
 			ptr_mod_string = append_string_to_string(ptr_mod_string,
-													 temp_string); 
+													 address_string);
+			free(variable_string);
+			free(address_string); 
 		}
 		else
 		{
@@ -517,10 +555,33 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 
 		free(temp_string);
 		current_line = next_line ? next_line + 1 : NULL;
+		i++;
 	}
+	// NOTE(Marko): Since I allocated asm_string in assembler.c main(), then 
+	// 				called preprocess.c process_asm_string() which returns the
+	//				same char *asm_string, and then free asm_string later in 
+	//				assembler.c main(), I actually need to hold onto the 
+	//				pointer, which means I can't simply return 
+	//				modified_asm_string without causing myself a bunch of 
+	//				memory-management headaches (I'd need to not return the 
+	//				same asm_string, but somehow trust that it would get 
+	//				deallocated later on over here, and that somehow I'd find 
+	//				a good place to deallocate modified_asm_string later on 
+	//				too. That's why I call realloc() on asm_string and perform 
+	//				this seemingly redundant copy-back of modified_asm_string. 
+	//				One way around this would be to just refactor the code so 
+	//				that you are constantly writing to a temporary file for 
+	//				each step of the preprocessing, instead of maintaining a 
+	//				string in memory. 
+	// TODO(Marko): This may or may not allocate 1 more byte than is actually 
+	//				needed. 
+	modified_asm_string_length = strlen(modified_asm_string);
+	asm_string = realloc(asm_string, modified_asm_string_length + 1);
+	memcpy(asm_string, modified_asm_string, modified_asm_string_length);
+	asm_string[modified_asm_string_length] = '\0';
+	free(modified_asm_string);
 
-
-	return modified_asm_string;
+	return asm_string;
 }
 
 char * preprocess_symbols(char *asm_string)

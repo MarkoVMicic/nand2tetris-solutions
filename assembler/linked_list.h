@@ -32,7 +32,7 @@ void remove_entry_by_string(linked_list **head, char * input_string);
 
 void delete_linked_list(linked_list **head);
 
-int retrieve_address_from_string_in_list(linked_list * head, 
+int retrieve_address_from_string_in_list(linked_list ** head, 
                                          char * input_string);
 
 int string_is_in_list(linked_list * head, char * input_string);
