@@ -627,7 +627,8 @@ char * preprocess_symbols(char *asm_string)
 	insert_variables_into_variable_table(asm_string, &variable_table);
 	// Get rid of extraneous head part. 
 	remove_entry_from_beginning_of_list(&variable_table);
-	print_linked_list(variable_table);
+	// puts("Variable table:\n");
+	// print_linked_list(variable_table);
 
 	asm_string = remove_labels(asm_string);
 	asm_string = remove_whitespace(asm_string);

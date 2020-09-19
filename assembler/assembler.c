@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "preprocess.h"
-// #include "parse.h"
+#include "parse.h"
+
+#define OUTPUT_FILE_PATH "/Users/markomicic/Desktop/Github_Repos/nand2tetris-solutions/assembler/test_out.txt"
 
 int main(int argc, char **argv)
 {
@@ -33,11 +35,17 @@ int main(int argc, char **argv)
 		printf("Failed to load file at %s. Aborting program...\n", file_path);
 		return 1;
 	}
-	asm_string = process_asm_string(asm_string);
+	// puts("Before processing.\n");
 	// puts(asm_string);
-	// parse_asm_string(asm_string);
+	asm_string = process_asm_string(asm_string);
+	// puts("After processing.\n");
+	// puts(asm_string);
+	// TODO(Marko): Consider making this the second arg of the main program instead of just 
+	// 				#define it here. 
+	parse_asm_string(asm_string, OUTPUT_FILE_PATH);
 
-	free(asm_string);			// Freeing the malloc'd string
+	// Freeing the malloc'd string	
+	free(asm_string);
 
 	return(0);
 };
