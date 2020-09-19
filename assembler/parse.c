@@ -69,6 +69,16 @@ void parse_a_instruction(char * current_line, char * parsed_line)
 
 void write_parsed_string_to_file(char * parsed_string, char * output_file_path)
 {
+	FILE * file;
+	file = fopen(output_file_path, "a");
+    if(file == NULL)
+    {
+    	// TODO(Marko): Error handling
+        printf("\nUnable to open '%s' file.\n", output_file_path);
+        printf("Please check whether file exists and you have write privilege.\n");
+    }
+    fputs(parsed_string, file);
+	fclose(file);
 }
 
 
