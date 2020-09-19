@@ -21,16 +21,16 @@ void parse_c_instruction(char * current_line, char * parsed_line)
 }
 
 
-void parse_a_instruction(char * current_line, char ** parsed_line)
+void parse_a_instruction(char * current_line, char * parsed_line)
 {
 	int machine_code_instruction[16];
 	int length_of_current_line = strlen(current_line);
 	int i;
 	int A_instruction_decimal;
-	char bin_digit;
 
-	char * A_instruction_address = *parsed_line;
-	printf("%c\n", *A_instruction_address);
+	char * A_instruction_address;
+	char * temp_string;
+	
 
 	// Initialize machine_code_instruction to all 0s. 
 	for(i=0; i<16; i++)
@@ -52,24 +52,18 @@ void parse_a_instruction(char * current_line, char ** parsed_line)
 			break;
 		}
 	}
-	for(i=0; i < 16; i++)
-	{
-		printf("%d",machine_code_instruction[i]);
-	}
-	printf("\n");
-
-	append_string_to_string(A_instruction_address, "0");
+	temp_string = malloc(18);
 	for(i=0; i<16; i++)
 	{
 		// The below line is a little bit of an evil hack. Basically, machine_code_instruction[i] is an int, and 
 		// so by abusing ASCII, we can add '0' to the int to convert it into its string equivalent. 
-		// A_instruction_address[i] = machine_code_instruction[i] + '0';
-		bin_digit = (char)machine_code_instruction[i] + '0';
-		append_string_to_string(A_instruction_address, &bin_digit);
+		temp_string[i] = machine_code_instruction[i] + '0';
+
 	}
-	append_string_to_string(A_instruction_address, "\n");	// Add newline to the end of the string
-	append_string_to_string(A_instruction_address, "\0");    // Null terminate the string. 
-	puts(*parsed_line);
+	temp_string[16] = '\n';	// Add newline to the end of the string
+	temp_string[17] = '\0';    // Null terminate the string. 
+	strcpy(parsed_line, temp_string);
+	free(temp_string);
 }
 
 
