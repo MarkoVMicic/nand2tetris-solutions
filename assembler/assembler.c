@@ -38,11 +38,14 @@ int main(int argc, char **argv)
 	// puts("Before processing.\n");
 	// puts(asm_string);
 	asm_string = process_asm_string(asm_string);
+	puts("Finished preprocessing");
 	// puts("After processing.\n");
 	// puts(asm_string);
 	// TODO(Marko): Consider making this the second arg of the main program instead of just 
 	// 				#define it here. 
 	parse_asm_string(asm_string, OUTPUT_FILE_PATH);
+	printf("Finished parsing and writing to file at %s\n", OUTPUT_FILE_PATH);
+
 
 	// Freeing the malloc'd string	
 	free(asm_string);

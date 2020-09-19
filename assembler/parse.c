@@ -123,7 +123,6 @@ void parse_c_instruction(char * current_line,
 	}
 	parsed_line[16] = '\n';
 	parsed_line[17] = '\0';
-	puts(parsed_line);
 
 
 	free(dest_string);
