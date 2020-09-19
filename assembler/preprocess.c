@@ -538,6 +538,16 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 			address = retrieve_address_from_string_in_list(head, 
                                          variable_string);
 			address_string = convert_int_to_string(address);
+			// NOTE(Marko): This is not strictly necessary -- the parser can 
+			//				probably handle not having an @ at the beginning
+			//				of A-instructions, but for the sake of writing
+			//				clearer code, I've stuck it back in there. 
+			//				There's probably a better way to go about making
+			//				sure it stays there, but thanks to the negigible 
+			//				overhead of append_string_to_string(), this isn't
+			//				a large issue. 
+			ptr_mod_string = append_string_to_string(ptr_mod_string,
+													 "@");
 			ptr_mod_string = append_string_to_string(ptr_mod_string,
 													 address_string);
 			free(variable_string);
