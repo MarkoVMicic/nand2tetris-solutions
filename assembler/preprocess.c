@@ -3,7 +3,7 @@
 #include <string.h>
 #include "linked_list.h"
 
-#define VARIABLE_MEMORY_BLOCK_START 5000
+#define VARIABLE_MEMORY_BLOCK_START 1024
 #define VARIABLE_MEMORY_BLOCK_END 15000
 
 #define NUMERIC_STRING "0123456789"
@@ -614,10 +614,8 @@ char * preprocess_symbols(char *asm_string)
 			  other two correspond to RAM addresses. 
 			• To prevent RAM collisions, we define some 
 			  VARIABLE_MEMORY_BLOCK_START and VARIABLE_MEMORY_BLOCK_END range 
-			  to store variables in some defined place in memory. For now, I'm 
-			  going to assume that a programmer is not going to use more than 
-			  10000 variables in their code. I'll allocate registers 5000 - 
-			  15000. 
+			  to store variables in some defined place in memory. As specified
+			  in the textbook, I'll start allocating from 1024. 
 	*/
 	linked_list * variable_table; 
 	initialize_linked_list(&variable_table);

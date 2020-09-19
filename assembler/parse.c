@@ -96,20 +96,21 @@ void parse_c_instruction(char * current_line,
 	parsed_line[0] = '\0';
 	ptr_parsed_line = parsed_line;
 	ptr_parsed_line = append_string_to_string(ptr_parsed_line, "111");
-	for(i=0; i<NUM_DEST_INSTRUCTIONS; i++)
-	{
-		if(strcmp(dest_string, dest[i].symbols) == 0)
-		{
-			ptr_parsed_line = append_string_to_string(ptr_parsed_line, dest[i].binary_address_string);
-			break;
-		}
-	}
 
 	for(i=0; i<NUM_COMP_INSTRUCTIONS; i++)
 	{
 		if(strcmp(comp_string, comp[i].symbols) == 0)
 		{
 			ptr_parsed_line = append_string_to_string(ptr_parsed_line, comp[i].binary_address_string);
+			break;
+		}
+	}
+	
+	for(i=0; i<NUM_DEST_INSTRUCTIONS; i++)
+	{
+		if(strcmp(dest_string, dest[i].symbols) == 0)
+		{
+			ptr_parsed_line = append_string_to_string(ptr_parsed_line, dest[i].binary_address_string);
 			break;
 		}
 	}
