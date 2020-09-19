@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "preprocess.h"
+#include "instruction_table.h"
 
+#define NUM_DEST_INSTRUCTIONS 8
+#define NUM_COMP_INSTRUCTIONS 28
+#define NUM_JUMP_INSTRUCTIONS 8
 /*	
 C-instruction format:
 	DEST = COMP ; JUMP
@@ -16,8 +20,53 @@ C-instruction format:
 
 */
 
-void parse_c_instruction(char * current_line, char * parsed_line)
+void parse_c_instruction(char * current_line, 
+	                     char * parsed_line,
+	                     instruction_table * dest,
+	                     instruction_table * comp,
+	                     instruction_table * jump)
 {
+	char * comp_ptr;
+	char * jump_ptr;
+
+	char * dest_string;
+	char * comp_string;
+	char * jump_string;
+
+	int dest_string_length;
+	int comp_string_length;
+	int jump_string_length;
+	int pos_equals_sign;
+	int pos_semi_colon;
+
+	pos_equals_sign = strchr(current_line, "=");
+	pos_semi_colon = strchr(current_line, ";");
+	if(!pos_equals_sign)
+	{
+		// no equals sign found -- no dest string. 
+		dest_string = malloc(1);
+		dest_string[0] = '\0';
+		dest_string_length = 0;
+		// comp_ptr starts at beginning of line
+		comp_ptr = current_line; 
+	}
+	else
+	{
+		// dest string is everything up to the equals sign; 
+		dest_string_length = pos_equals_sign - current_line; 
+		dest_string = malloc(dest_string_length+1);
+		memcpy(dest_string, current_line, dest_string_length);
+		dest_string[dest_string_length] = '\0';
+		// comp_ptr starts at equals sign. 
+		comp_ptr = pos_equals_sign;
+	}
+	if(!pos_semi_colon)
+	{
+		// No semi-colon found -- no jump string. 
+		jump_string = malloc(1);
+		jump_string[0] = '\0';
+		jump_string_length = 0;
+	}
 }
 
 
