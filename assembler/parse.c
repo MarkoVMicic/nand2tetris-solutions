@@ -177,7 +177,7 @@ void parse_a_instruction(char * current_line, char * parsed_line)
 }
 
 
-void write_parsed_string_to_file(char * parsed_string, char * output_file_path)
+void write_parsed_string_to_opened_file(char * parsed_string, char * output_file_path)
 {
 	FILE * file;
 	file = fopen(output_file_path, "a");
@@ -190,6 +190,22 @@ void write_parsed_string_to_file(char * parsed_string, char * output_file_path)
     fputs(parsed_string, file);
 	fclose(file);
 }
+
+
+void write_parsed_string_to_new_file(char * parsed_string, char * output_file_path)
+{
+	FILE * file;
+	file = fopen(output_file_path, "w");
+    if(file == NULL)
+    {
+    	// TODO(Marko): Error handling
+        printf("\nUnable to open '%s' file.\n", output_file_path);
+        printf("Please check whether file exists and you have write privilege.\n");
+    }
+    fputs(parsed_string, file);
+	fclose(file);
+}
+
 
 
 void parse_asm_string(char *asm_string, char * output_file_path)
@@ -243,7 +259,14 @@ void parse_asm_string(char *asm_string, char * output_file_path)
 							        comp_table,
 							        jump_table);
 			}
-			write_parsed_string_to_file(parsed_string, output_file_path);
+			if(current_line == asm_string)
+			{
+				write_parsed_string_to_new_file(parsed_string, output_file_path);
+			}
+			else
+			{	
+				write_parsed_string_to_opened_file(parsed_string, output_file_path);
+			}
 			free(temp_string);
 			free(parsed_string);
 		}
