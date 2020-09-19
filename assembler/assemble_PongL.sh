@@ -1,0 +1,1 @@
+./assembler ./asm_files/PongL.asm ./assembled_programs/PongL.hack

@@ -1,0 +1,1 @@
+./assembler ./asm_files/MaxL.asm ./assembled_programs/MaxL.hack

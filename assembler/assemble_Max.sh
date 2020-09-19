@@ -1,0 +1,1 @@
+./assembler ./asm_files/Max.asm ./assembled_programs/Max.hack

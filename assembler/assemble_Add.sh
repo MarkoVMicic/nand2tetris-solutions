@@ -1,0 +1,1 @@
+./assembler ./asm_files/Add.asm ./assembled_programs/Add.hack

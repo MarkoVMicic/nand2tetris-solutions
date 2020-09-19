@@ -1,0 +1,1 @@
+./assembler ./asm_files/Rect.asm ./assembled_programs/Rect.hack

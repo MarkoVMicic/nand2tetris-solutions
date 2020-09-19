@@ -1,0 +1,1 @@
+./assembler ./asm_files/RectL.asm ./assembled_programs/RectL.hack
