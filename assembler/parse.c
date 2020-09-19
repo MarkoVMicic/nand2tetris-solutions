@@ -33,11 +33,15 @@ void parse_c_instruction(char * current_line,
 	char * comp_string;
 	char * jump_string;
 
+	char * ptr_parsed_line;
+
 	int dest_string_length;
 	int comp_string_length;
 	int jump_string_length;
 	char * pos_equals_sign;
 	char * pos_semi_colon;
+
+	int i;
 
 	pos_equals_sign = strchr(current_line, '=');
 	pos_semi_colon = strchr(current_line, ';');
@@ -88,6 +92,38 @@ void parse_c_instruction(char * current_line,
 		memcpy(jump_string, jump_ptr, jump_string_length);
 		jump_string[jump_string_length] = '\0';
 	}
+
+	parsed_line[0] = '\0';
+	ptr_parsed_line = parsed_line;
+	ptr_parsed_line = append_string_to_string(ptr_parsed_line, "111");
+	for(i=0; i<NUM_DEST_INSTRUCTIONS; i++)
+	{
+		if(strcmp(dest_string, dest[i].symbols) == 0)
+		{
+			ptr_parsed_line = append_string_to_string(ptr_parsed_line, dest[i].binary_address_string);
+			break;
+		}
+	}
+
+	for(i=0; i<NUM_COMP_INSTRUCTIONS; i++)
+	{
+		if(strcmp(comp_string, comp[i].symbols) == 0)
+		{
+			ptr_parsed_line = append_string_to_string(ptr_parsed_line, comp[i].binary_address_string);
+			break;
+		}
+	}
+
+	for(i=0; i<NUM_JUMP_INSTRUCTIONS; i++)
+	{
+		if(strcmp(jump_string, jump[i].symbols) == 0)
+		{
+			ptr_parsed_line = append_string_to_string(ptr_parsed_line, jump[i].binary_address_string);
+		}
+	}
+	parsed_line[16] = '\n';
+	parsed_line[17] = '\0';
+	puts(parsed_line);
 
 
 	free(dest_string);
