@@ -36,11 +36,11 @@ void parse_c_instruction(char * current_line,
 	int dest_string_length;
 	int comp_string_length;
 	int jump_string_length;
-	int pos_equals_sign;
-	int pos_semi_colon;
+	char * pos_equals_sign;
+	char * pos_semi_colon;
 
-	pos_equals_sign = strchr(current_line, "=");
-	pos_semi_colon = strchr(current_line, ";");
+	pos_equals_sign = strchr(current_line, '=');
+	pos_semi_colon = strchr(current_line, ';');
 	if(!pos_equals_sign)
 	{
 		// no equals sign found -- no dest string. 
@@ -58,15 +58,41 @@ void parse_c_instruction(char * current_line,
 		memcpy(dest_string, current_line, dest_string_length);
 		dest_string[dest_string_length] = '\0';
 		// comp_ptr starts at equals sign. 
-		comp_ptr = pos_equals_sign;
+		comp_ptr = pos_equals_sign+1;
 	}
+
 	if(!pos_semi_colon)
 	{
 		// No semi-colon found -- no jump string. 
 		jump_string = malloc(1);
 		jump_string[0] = '\0';
 		jump_string_length = 0;
+
+		// comp string is everything from comp_ptr to the end of the line
+		comp_string_length = strlen(comp_ptr);
+		comp_string = malloc(comp_string_length+1);
+		memcpy(comp_string, comp_ptr, comp_string_length);
+		comp_string[comp_string_length] = '\0';
 	}
+	else
+	{
+		// comp string goes from comp_ptr to the semi-colon
+		comp_string_length = pos_semi_colon - comp_ptr;
+		comp_string = malloc(comp_string_length+1);
+		memcpy(comp_string, comp_ptr, comp_string_length);
+		comp_string[comp_string_length] = '\0';
+		// Jump string begins at semi-colon.
+		jump_ptr = pos_semi_colon+1;
+		jump_string_length = strlen(jump_ptr);
+		jump_string = malloc(jump_string_length+1);
+		memcpy(jump_string, jump_ptr, jump_string_length);
+		jump_string[jump_string_length] = '\0';
+	}
+
+
+	free(dest_string);
+	free(comp_string);
+	free(jump_string);
 }
 
 
