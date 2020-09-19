@@ -2,14 +2,16 @@
 #include <string.h>
 #include <stdlib.h>
 
-typedef struct instruction_table_entry
+// TODO(Marko): This can be changed to a hash table instead of these arrays.
+
+typedef struct instruction_table
 {
     char symbols[8];
     char binary_address_string[16];
-} instruction_table_entry;
+} instruction_table;
 
 
-void insert_instructions_into_dest_table(instruction_table_entry * table)
+void insert_instructions_into_dest_table(instruction_table * table)
 {
     strcpy(table[0].symbols, "\0");
     strcpy(table[0].binary_address_string, "000"); 
@@ -37,7 +39,7 @@ void insert_instructions_into_dest_table(instruction_table_entry * table)
 }
 
 
-void insert_instructions_into_comp_table(instruction_table_entry * table)
+void insert_instructions_into_comp_table(instruction_table * table)
 {
    strcpy(table[0].symbols, "0");
    strcpy(table[0].binary_address_string, "0101010");
@@ -125,7 +127,7 @@ void insert_instructions_into_comp_table(instruction_table_entry * table)
 
 }
 
-void insert_instructions_into_jump_table(instruction_table_entry * table)
+void insert_instructions_into_jump_table(instruction_table * table)
 {
     strcpy(table[0].symbols, "\0");
     strcpy(table[0].binary_address_string, "000"); 
