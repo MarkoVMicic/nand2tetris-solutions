@@ -91,35 +91,55 @@ void parse_asm_string(char *asm_string, char * output_file_path)
 	char * temp_string;
 	char * parsed_string;
 
+	instruction_table * dest_table;
+	instruction_table * comp_table;
+	instruction_table * jump_table; 
+
+	dest_table = malloc(sizeof(instruction_table)*NUM_DEST_INSTRUCTIONS);
+	comp_table = malloc(sizeof(instruction_table)*NUM_COMP_INSTRUCTIONS);
+	jump_table = malloc(sizeof(instruction_table)*NUM_JUMP_INSTRUCTIONS);
+
+	insert_instructions_into_dest_table(dest_table);
+	insert_instructions_into_comp_table(comp_table);
+	insert_instructions_into_jump_table(jump_table);
+
 	current_line = asm_string;	
 	while(current_line)
 	{
 		next_line = strchr(current_line, '\n');		
 		current_line_length = next_line ? 
 			(next_line - current_line) : strlen(current_line);
-		temp_string = malloc(current_line_length+1);
-		memcpy(temp_string, current_line, current_line_length);
-		if(temp_string == NULL)
+		if(current_line_length)
 		{
-			printf("malloc() failed.\n");
-		}
+			temp_string = malloc(current_line_length+1);
+			memcpy(temp_string, current_line, current_line_length);
+			temp_string[current_line_length] = '\0';
+			if(temp_string == NULL)
+			{
+				printf("malloc() failed.\n");
+			}
 
-		// each line is parsed to a 16-bit instruction, a new-line char, and a null-terminator
-		parsed_string = malloc(18);
-		parsed_string[0] = '\0';
-		if(temp_string[0] == '@')
-		{
-			parse_a_instruction(temp_string, &parsed_string);
-			puts("string:");
-			puts(parsed_string);
+			// each line is parsed to a 16-bit instruction, a new-line char, and a null-terminator
+			parsed_string = malloc(18);
+			if(temp_string[0] == '@')
+			{
+				parse_a_instruction(temp_string, parsed_string);
+			}
+			else
+			{
+				parse_c_instruction(temp_string, 
+							        parsed_string,
+							        dest_table,
+							        comp_table,
+							        jump_table);
+			}
+			write_parsed_string_to_file(parsed_string, output_file_path);
+			free(temp_string);
+			free(parsed_string);
 		}
-		else
-		{
-			parse_c_instruction(temp_string, parsed_string);
-		}
-		write_parsed_string_to_file(parsed_string, output_file_path);
-		free(temp_string);
-		free(parsed_string);
 		current_line = next_line ? next_line + 1 : NULL;
 	}
+	free(dest_table);
+	free(comp_table);
+	free(jump_table);
 }
