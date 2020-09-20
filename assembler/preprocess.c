@@ -203,7 +203,7 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 	// Pass through asm_string, collecting location symbols in 
 	// parenthesis. Keep track of line count, do not count lines 
 	// where the labels are. No duplicates are allowed. 
-	int line_count = 1;
+	int line_count = 0;
 	int current_line_length;
 	int label_string_length;
 	char * next_line;
