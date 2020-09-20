@@ -3,7 +3,8 @@
 #include <string.h>
 #include "linked_list.h"
 
-#define VARIABLE_MEMORY_BLOCK_START 1024
+// NOTE(Marko): Realistically you probably wouldn't start here... doing this to pass test case. 
+#define VARIABLE_MEMORY_BLOCK_START 16
 #define VARIABLE_MEMORY_BLOCK_END 15000
 
 #define NUMERIC_STRING "0123456789"

@@ -148,8 +148,8 @@ void insert_instructions_into_jump_table(instruction_table * table)
     strcpy(table[5].binary_address_string, "101"); 
 
     strcpy(table[6].symbols, "JLE");
-    strcpy(table[6].binary_address_string, "000"); 
+    strcpy(table[6].binary_address_string, "110"); 
 
     strcpy(table[7].symbols, "JMP");
-    strcpy(table[7].binary_address_string, "000");   
+    strcpy(table[7].binary_address_string, "111");   
 }
