@@ -420,13 +420,19 @@ int count_lines_in_string(char * string)
 char * append_string_to_string(char * destination_string, char * source_string)
 {
 	/*
+		INPUT:
+			- A pointer to the destination string 
+			-
+
+		RETURNS
+			-
 		WARNINGS: 
 		(1) Make sure that destination_string has enough space allocated 
 		    to it after the null-terminator so that it can contain the
 		    contents of source_string, otherwise. you will start writing into unallocated memory which causes undefined behavior or segfault. 
 		(2) Make sure that both strings are actually null-terminated.
 		(3) Make sure that the pointer you pass to this function for both 
-		    strings are copies of the original string pointers, otherwise you
+		    strings are *copies* of the original string pointers, otherwise you
 		    will modify the original pointers causing weird behavior.  
 	*/
 	// Get to the end of the destination_string. 
@@ -447,7 +453,16 @@ char * append_string_to_string(char * destination_string, char * source_string)
 // TODO(Marko): Possible issue with types int vs unsigned short. Investigate
 char * convert_int_to_string(int address)
 {
-	// NOTE(Marko): I'm sneaking in a newline char here coz I need to. 
+	/*
+		INPUT:
+			- An integer representing a numerical decimal address.
+
+		RETURNS:
+			- A null-terminated string stored in heap memory consisting of the
+			  digits of the numerical address followed by a newline character. 
+
+		NOTE(Marko): I'm sneaking in a newline char here coz I need to. 
+	*/
 	int string_length = snprintf(NULL, 0, "%d", address);
 	char * string = malloc(string_length+2);
 	snprintf(string, string_length+2, "%d", address);
@@ -460,6 +475,18 @@ char * convert_int_to_string(int address)
 char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 {
 	/*
+		INPUT:
+			- A null-terminated string stored in the heap memory containing 
+			  the contents of the assembly-language program with symbols.
+			- A pointer to the head node of a linked-list containing the 
+			  symbols and their corresponding numerical decimal addresses. 
+
+		RETURNS:
+			- A null-terminated string stored in heap memory containing the 
+			  contents of the assembly-language program with the symbols 
+			  replaced by numerical decimal addresses. 
+
+		NOTE(Marko):
 		At this stage, every asm_string that gets to here (that is valid) will 
 		consist of some number of lines. Our goal is to replace A-instruction 
 		lines (i.e. lines beginning with @) which contain a variable (i.e. not 
@@ -506,7 +533,8 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 	char * address_string; 
 
 	line_count = count_lines_in_string(asm_string);
-	// Remove blank line at end of program from line count. 
+	// TODO(Marko): Revisit this removal of a blank line at the end of the 
+	//				program. It looks very problematic. 
 	if(line_count % 2)
 	{
 		line_count--;
@@ -529,8 +557,6 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 		if(current_line[0] == '@' && 
 			(strchr(NUMERIC_STRING, current_line[1]) == 0))
 		{
-			// Replace variable with address in variable table
-			// TODO(Marko): Implement 
 			memcpy(temp_string, current_line, current_line_length);
 			temp_string[current_line_length] = '\0';
 			variable_string = malloc(current_line_length);
@@ -539,14 +565,17 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 			address = retrieve_address_from_string_in_list(head, 
                                          variable_string);
 			address_string = convert_int_to_string(address);
-			// NOTE(Marko): This is not strictly necessary -- the parser can 
-			//				probably handle not having an @ at the beginning
-			//				of A-instructions, but for the sake of writing
-			//				clearer code, I've stuck it back in there. 
-			//				There's probably a better way to go about making
-			//				sure it stays there, but thanks to the negigible 
-			//				overhead of append_string_to_string(), this isn't
-			//				a large issue. 
+			/*
+
+				NOTE(Marko): This is not strictly necessary -- the parser can 
+							 probably handle not having an @ at the beginning
+							 of A-instructions, but for the sake of writing
+							 clearer code, I've stuck it back in there. 
+							 There's probably a better way to go about making
+							 sure it stays there, but thanks to the negigible 
+							 overhead of append_string_to_string(), this isn't
+							 a large issue. 
+			*/
 			ptr_mod_string = append_string_to_string(ptr_mod_string,
 													 "@");
 			ptr_mod_string = append_string_to_string(ptr_mod_string,
@@ -563,7 +592,6 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 			ptr_mod_string = append_string_to_string(ptr_mod_string,
 													 temp_string);
 		}
-
 		free(temp_string);
 		current_line = next_line ? next_line + 1 : NULL;
 		i++;
@@ -585,7 +613,7 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 	//				each step of the preprocessing, instead of maintaining a 
 	//				string in memory. 
 	// TODO(Marko): This may or may not allocate 1 more byte than is actually 
-	//				needed. 
+	//				needed. Check it. 
 	modified_asm_string_length = strlen(modified_asm_string);
 	asm_string = realloc(asm_string, modified_asm_string_length + 1);
 	memcpy(asm_string, modified_asm_string, modified_asm_string_length);
@@ -598,15 +626,18 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 char * preprocess_symbols(char *asm_string)
 {
 	/*
-		3 types of symbols:
-			1. Predefined symbols
-			2. Labels (things that appear in brackets)
-			3. variables. 
-		All are handled the same way: put in linked list with associated 
-		address, then go through the string and replace the variables with the 
-		address. 
+		INPUT:
+			- A null-terminated string stored in heap memory which contains  
+			  the assembly language program with sybmols. Symbols include 
+			  predefined symbols, labels, and variables. 
 
-		Notes:
+		RETURNS:
+			- A null-terminated string stored in heap memory which contains 
+			the assembly language program with all the labels removed, and the 
+			remaining symbols replaced by the corresponding decimal numerical 
+			addresses.
+
+		NOTE(Marko):
 			• The addresses of labels are guaranteed not to collide with each 
 			  other since they can only occupy one line. 
 			• It does not matter if the addresses of labels collide with the 
@@ -615,8 +646,9 @@ char * preprocess_symbols(char *asm_string)
 			  other two correspond to RAM addresses. 
 			• To prevent RAM collisions, we define some 
 			  VARIABLE_MEMORY_BLOCK_START and VARIABLE_MEMORY_BLOCK_END range 
-			  to store variables in some defined place in memory. As specified
-			  in the textbook, I'll start allocating from 1024. 
+			  to store variables in some defined place in memory. For now 
+			  these are just programmed to start at 16 and end at some random 
+			  far-away memory address. This needs to be considered more. 
 	*/
 	linked_list * variable_table; 
 	initialize_linked_list(&variable_table);
@@ -624,10 +656,8 @@ char * preprocess_symbols(char *asm_string)
 
 	insert_labels_into_variable_table(asm_string, &variable_table);
 	insert_variables_into_variable_table(asm_string, &variable_table);
-	// Get rid of extraneous head part. 
+	// Get rid of extraneous head part of linked list. This is cheap to do. 
 	remove_entry_from_beginning_of_list(&variable_table);
-	// puts("Variable table:\n");
-	// print_linked_list(variable_table);
 
 	asm_string = remove_labels(asm_string);
 	asm_string = remove_whitespace(asm_string);
@@ -642,18 +672,68 @@ char * preprocess_symbols(char *asm_string)
 
 char * process_asm_string(char *asm_string)
 {
+	/*
+		INPUT: 
+			- a raw assembly-language program stored in heap memory as a 
+			  null-terminated ASCII string.
+
+		RETURNS:  
+			- the processed assembly-language program stored in heap memory as 
+			  a null-terminated ASCII string. 
+
+		NOTE(Marko): The length of the returned string is less than or equal 
+					 to the length of the input string. This is as a result of 
+					 the implementation of preprocess_symbols(). In 
+					 preprocess_symbols() we call 
+					 replace_symbols_with_addresses(), and there we 
+					 essentially allocate an entirely new string in memory, 
+					 then selectively copy over the contents of the old string 
+					 into the new string, replacing symbols with addresses as 
+					 we go line-by-line. We then compute the new string 
+					 length, and realloc the old string into new memory with 
+					 the same length as the new string, then copy the contents 
+					 of the new string back into the old string. This is 
+					 problematic if we call process_asm_string() multiple 
+					 times in a row for various reasons: 
+					 
+					 (1) We aren't ever using malloc() with a fixed buffer 
+					 size (or fixed quanta of sizes). This means that we very 
+					 easily will leave ourselves with a problem of heap 
+					 fragmentation since we would then be allocating and 
+					 freeing memory of different sizes in the heap. 
+					 
+					 (2) I'm not entirely sure how realloc() works, so I'm 
+					 just hoping that it works in some "sensible" way that 
+					 doesn't cause issues but I need to actually check how it 
+					 works. 
+
+	*/
+	/*
+		 TODO(Marko): What is better here? To pass asm_string to a sequence of 
+		 void functions, or a sequence of char * functions? "Better" is some 
+		 subjective combination of readability and safety (and maybe 
+		 performance). 
+	*/
 	asm_string = remove_comments(asm_string);
 	asm_string = remove_whitespace(asm_string);
 	asm_string = remove_tabs(asm_string);
 	asm_string = remove_blank_lines(asm_string);
 	asm_string = preprocess_symbols(asm_string);
-	// TODO: Handle variables here.
 	return asm_string;
 }
 
 
-char * open_file_store_as_string(const char *file_path)
+char * open_file_store_as_string(char *file_path)
 {
+	/*
+		INPUT:
+			- A string containing the file path of the assembly language text 
+			  file. 
+
+		RETURNS:
+			- A null-terminated string stored on the heap containing the 
+			  contents of the assembly language text file. 
+	*/
 	char *asm_string;
 	long length;
 	FILE *file; 
@@ -661,11 +741,11 @@ char * open_file_store_as_string(const char *file_path)
 	printf("Parsing file found at %s ...\n", file_path);
 	file = fopen(file_path, "r");
 	if(file)
-	{	// i.e. if file != NULL
+	{	
 		fseek(file, 0, SEEK_END);
 		length = ftell(file);
 		fseek(file, 0, SEEK_SET);
-		// allocate the asm_string -- remember to free this when done! 
+		// remember to free this asm_string when done! 
 		asm_string = malloc(length+1);		
 		if (asm_string)
 		  {
@@ -676,9 +756,12 @@ char * open_file_store_as_string(const char *file_path)
 	}
 	else
 	{
-		asm_string = malloc(1);
-		asm_string[0] = '\0';
-		printf("something went wrong.\n");
+		// TODO(Marko): Where should this be handled? 
+		printf("Unable to open file at %s\n", file_path);
+		printf("Check to see if the file exists, and you have");
+		printf("Write privileges for it. \n");
+		fclose(file);
+		exit(EXIT_FAILURE);
 	}
 	return asm_string;
 }

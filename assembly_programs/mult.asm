@@ -26,6 +26,9 @@
 //
 //Machine Code:
 
+	@R2		// Initialize R2 to 0. 
+	M=0
+
 	@R0
 	D=M
 	@ZEROPRODUCT

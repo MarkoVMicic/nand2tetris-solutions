@@ -2,13 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-// TODO(Marko): This can be changed to a hash table instead of these arrays.
+#include "instruction_table.h"
 
-typedef struct instruction_table
-{
-    char symbols[8];
-    char binary_address_string[16];
-} instruction_table;
+// TODO(Marko): This can be changed to a hash table instead of these arrays.
 
 
 void insert_instructions_into_dest_table(instruction_table * table)
