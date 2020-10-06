@@ -3,9 +3,8 @@
 #include <string.h>
 #include "linked_list.h"
 
-// NOTE(Marko): Realistically you probably wouldn't start here... doing this to pass test case. 
 #define VARIABLE_MEMORY_BLOCK_START 16
-#define VARIABLE_MEMORY_BLOCK_END 15000
+#define VARIABLE_MEMORY_BLOCK_END 255
 
 #define NUMERIC_STRING "0123456789"
 
@@ -171,7 +170,21 @@ char * remove_labels(char * asm_string)
 
 void insert_predefined_symbols_into_variable_table(linked_list ** head)
 {
-
+	/*
+		INPUT:
+			- linked_list **head
+			  A pointer to the head node of a linked list.
+	*/
+	
+	/* 
+		TODO(Marko): Performance consideration: perhaps this should be adding 
+					 entries to the beginning of the list instead of appending 
+					 them to the end of the list, since appending to the end 
+					 of the list requires traversing the entire list every 
+					 time. This linked list will usually be quite small so 
+					 it's probably not a huge deal but it's definitely 
+					 suboptimal at the moment. 
+	*/
 	append_entry_to_end_of_list(head, "R0", (unsigned short) 0);
 	append_entry_to_end_of_list(head, "R1", (unsigned short) 1);
 	append_entry_to_end_of_list(head, "R2", (unsigned short) 2);
@@ -270,6 +283,13 @@ void insert_labels_into_variable_table(char * asm_string, linked_list **head)
 void insert_variables_into_variable_table(char * asm_string, 
 										  linked_list **head)
 {
+	/*
+		INPUT: 
+			- char *asm_string
+			  A null-terminated string stored in heap memory consisting of the assembly language program.
+			- linked_list **head
+			  A pointer to the head node of a linked list containing 
+	*/
 	int variable_address = VARIABLE_MEMORY_BLOCK_START;
 	int allowed_variable_count; 
 	int current_line_length;
@@ -283,7 +303,11 @@ void insert_variables_into_variable_table(char * asm_string,
 	allowed_variable_count = VARIABLE_MEMORY_BLOCK_END - 
 							 VARIABLE_MEMORY_BLOCK_START;
 	/*
-		let + denote the newline char '\n', and • denote the null-terminator char '\0'. Then we have this setup: 
+	NOTE(Marko): Below follows a long explanation using ASCII diagrams 
+	explaining how this function works. 
+
+		let + denote the newline char '\n', and • denote the null-terminator 
+		char '\0'. Then we have this setup: 
 
 						current_line_length
 					 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
@@ -299,9 +323,11 @@ void insert_variables_into_variable_table(char * asm_string,
 		just use strchr(temp_string, '\n'); to find the end of temp_string
 		the way we have done in other functions. Note the structure of 
 		temp_string, given to us because we allocate using 
-		malloc(current_line_length+1). Suppose we use • to denote the null-terminate string '\0', then we get the following result:
+		malloc(current_line_length+1). Suppose we use • to denote the 
+		null-terminate string '\0', then we get the following result:
 
-		temp_string = malloc(current_line_length+1); // allocating 32 bytes in this e.g.
+		temp_string = malloc(current_line_length+1); // allocating 32 bytes in 
+		this e.g.
 
 						    current_line_length = 31
 						  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
@@ -364,8 +390,6 @@ void insert_variables_into_variable_table(char * asm_string,
      					 {							   }
      					  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
 							current_line_length							
-
-
 	*/
 	while(current_line)
 	{
@@ -403,6 +427,16 @@ void insert_variables_into_variable_table(char * asm_string,
 
 int count_lines_in_string(char * string)
 {
+	/*
+		INPUT:
+			- char *string
+			  A null-terminated string stored in the heap.
+
+		RETURNS:
+			- int line_count
+			  An integer containing the number of lines in the string. Lines 
+			  are inidicated by the newline char '\n'. 
+	*/
 	int line_count = 0;
 	char * current_line = string;
 	char * next_line;
@@ -421,15 +455,27 @@ char * append_string_to_string(char * destination_string, char * source_string)
 {
 	/*
 		INPUT:
-			- A pointer to the destination string 
-			-
+			- char *destination_string
+			  A pointer to the destination string. This pointer should be a 
+			  separate pointer from the one that has had memory allocated to 
+			  it i.e. this should be a copy of the original pointer. 
+			- char *source_string
+			  A pointer to the source string that will be appended to the 
+			  destination string. The pointer should point to the first 
+			  character. This pointer should be a separate pointer from the 
+			  one that has had memory allocated to it i.e. this should be a 
+			  copy of the original pointer. 
 
 		RETURNS
-			-
+			- char *(destination_string-1)
+			  A pointer to the last character in the string consisting of the 
+			  source string appended to the destination string. (By last 
+			  character, I mean the character before the null-terminator)
 		WARNINGS: 
 		(1) Make sure that destination_string has enough space allocated 
 		    to it after the null-terminator so that it can contain the
-		    contents of source_string, otherwise. you will start writing into unallocated memory which causes undefined behavior or segfault. 
+		    contents of source_string, otherwise. you will start writing into 
+		    unallocated memory which causes undefined behavior or segfault. 
 		(2) Make sure that both strings are actually null-terminated.
 		(3) Make sure that the pointer you pass to this function for both 
 		    strings are *copies* of the original string pointers, otherwise you
@@ -455,15 +501,18 @@ char * convert_int_to_string(int address)
 {
 	/*
 		INPUT:
-			- An integer representing a numerical decimal address.
+			- int address
+			  An integer representing a numerical decimal address.
 
 		RETURNS:
-			- A null-terminated string stored in heap memory consisting of the
+			- char *string
+			  A null-terminated string stored in heap memory consisting of the
 			  digits of the numerical address followed by a newline character. 
-
-		NOTE(Marko): I'm sneaking in a newline char here coz I need to. 
 	*/
+
 	int string_length = snprintf(NULL, 0, "%d", address);
+	// NOTE(Marko): I'm sneaking in a newline char here coz I need to. This 
+	//              explains the length+2 instead of the usual length+1
 	char * string = malloc(string_length+2);
 	snprintf(string, string_length+2, "%d", address);
 	string[string_length] = '\n';
@@ -476,13 +525,16 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 {
 	/*
 		INPUT:
-			- A null-terminated string stored in the heap memory containing 
+			- char *asm_string
+			  A null-terminated string stored in the heap memory containing 
 			  the contents of the assembly-language program with symbols.
-			- A pointer to the head node of a linked-list containing the 
+			- linked_list **head
+			  A pointer to the head node of a linked-list containing the 
 			  symbols and their corresponding numerical decimal addresses. 
 
 		RETURNS:
-			- A null-terminated string stored in heap memory containing the 
+			- char * asm_string
+			  A null-terminated string stored in heap memory containing the 
 			  contents of the assembly-language program with the symbols 
 			  replaced by numerical decimal addresses. 
 
@@ -517,7 +569,7 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 		null-terminator. 
 	*/
 	int line_count;
-	int max_line_length = 12;
+	int max_line_length = 12; // See note above
 	int modified_asm_string_max_length;
 	int modified_asm_string_length;
 	int current_line_length;
@@ -534,7 +586,7 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 
 	line_count = count_lines_in_string(asm_string);
 	// TODO(Marko): Revisit this removal of a blank line at the end of the 
-	//				program. It looks very problematic. 
+	//				assembly language string. It looks very problematic. 
 	if(line_count % 2)
 	{
 		line_count--;
@@ -596,22 +648,25 @@ char * replace_symbols_with_addresses(char * asm_string, linked_list **head)
 		current_line = next_line ? next_line + 1 : NULL;
 		i++;
 	}
-	// NOTE(Marko): Since I allocated asm_string in assembler.c main(), then 
-	// 				called preprocess.c process_asm_string() which returns the
-	//				same char *asm_string, and then free asm_string later in 
-	//				assembler.c main(), I actually need to hold onto the 
-	//				pointer, which means I can't simply return 
-	//				modified_asm_string without causing myself a bunch of 
-	//				memory-management headaches (I'd need to not return the 
-	//				same asm_string, but somehow trust that it would get 
-	//				deallocated later on over here, and that somehow I'd find 
-	//				a good place to deallocate modified_asm_string later on 
-	//				too. That's why I call realloc() on asm_string and perform 
-	//				this seemingly redundant copy-back of modified_asm_string. 
-	//				One way around this would be to just refactor the code so 
-	//				that you are constantly writing to a temporary file for 
-	//				each step of the preprocessing, instead of maintaining a 
-	//				string in memory. 
+	/*
+	NOTE(Marko): Since I allocated asm_string in assembler.c main(), then 
+					called preprocess.c process_asm_string() which returns the
+					same char *asm_string, and then free asm_string later in 
+					assembler.c main(), I actually need to hold onto the 
+					pointer, which means I can't simply return 
+					modified_asm_string without causing myself a bunch of 
+					memory-management headaches (I'd need to not return the 
+					same asm_string, but somehow trust that it would get 
+					deallocated later on over here, and that somehow I'd find 
+					a good place to deallocate modified_asm_string later on 
+					too. That's why I call realloc() on asm_string and perform 
+					this seemingly redundant copy-back of modified_asm_string. 
+					One way around this would be to just refactor the code so 
+					that you are constantly writing to a temporary file for 
+					each step of the preprocessing, instead of maintaining a 
+					string in memory. 
+	*/
+
 	// TODO(Marko): This may or may not allocate 1 more byte than is actually 
 	//				needed. Check it. 
 	modified_asm_string_length = strlen(modified_asm_string);
@@ -627,15 +682,17 @@ char * preprocess_symbols(char *asm_string)
 {
 	/*
 		INPUT:
-			- A null-terminated string stored in heap memory which contains  
+			- char *asm_string
+			  A null-terminated string stored in heap memory which contains  
 			  the assembly language program with sybmols. Symbols include 
 			  predefined symbols, labels, and variables. 
 
 		RETURNS:
-			- A null-terminated string stored in heap memory which contains 
-			the assembly language program with all the labels removed, and the 
-			remaining symbols replaced by the corresponding decimal numerical 
-			addresses.
+			- char *asm_string
+			  A null-terminated string stored in heap memory which contains 
+			  the assembly language program with all the labels removed, and 
+			  the remaining symbols replaced by the corresponding decimal 
+			  numerical addresses.
 
 		NOTE(Marko):
 			• The addresses of labels are guaranteed not to collide with each 
@@ -674,11 +731,13 @@ char * process_asm_string(char *asm_string)
 {
 	/*
 		INPUT: 
-			- a raw assembly-language program stored in heap memory as a 
+			- char *asm_string
+			  a raw assembly-language program stored in heap memory as a 
 			  null-terminated ASCII string.
 
 		RETURNS:  
-			- the processed assembly-language program stored in heap memory as 
+			- char *asm_string
+			  the processed assembly-language program stored in heap memory as 
 			  a null-terminated ASCII string. 
 
 		NOTE(Marko): The length of the returned string is less than or equal 
@@ -727,11 +786,13 @@ char * open_file_store_as_string(char *file_path)
 {
 	/*
 		INPUT:
-			- A string containing the file path of the assembly language text 
+			- char *fuilepath
+			  A string containing the file path of the assembly language text 
 			  file. 
 
 		RETURNS:
-			- A null-terminated string stored on the heap containing the 
+			- char *asm_string
+			  A null-terminated string stored on the heap containing the 
 			  contents of the assembly language text file. 
 	*/
 	char *asm_string;

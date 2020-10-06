@@ -33,11 +33,13 @@ int main(int argc, char **argv)
 	output_file_path = argv[2];
 	if(input_file_path[0] == '\0')
 	{
-		printf("File_path is an empty string or the first character is '\\0'.");
+		printf("Input File path is an empty string or the first character is 
+				'\\0'.");
 		printf("\n");
 		printf("Aborting program... ");
 		return(1);
 	}
+	if(output_file_path[0] == '\0')
 	asm_string = open_file_store_as_string(input_file_path);
 	// Abort the program if no file was found. 
 	if(asm_string[0] == '\0')
