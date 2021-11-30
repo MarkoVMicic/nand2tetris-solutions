@@ -24,6 +24,19 @@ typedef uint16_t uint16;
 typedef uint32_t uint32;
 typedef uint64_t uint64;
 
+#if WIN_ASSSEMBLER_DEBUG
+    // NOTE: Assert macro -> Write to the NULL pointer if Expression is false. 
+    //       This is platform independent. 
+    // TODO: Complete Assertion Macro
+    #define Assert(Expression) if(!(Expression)){* (int *)0 = 0;}
+#else
+    #define Assert(Expression)
+#endif
+
+#define InvalidCodePath Assert(!"InvalidCodePath");
+
+#define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
+
 
 
 #define WIN_ASSEMBLER_H
