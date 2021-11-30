@@ -37,6 +37,48 @@ typedef uint64_t uint64;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
+inline uint32 
+SafeTruncateUInt64(uint64 Value)
+{           
+    // TODO: Defines for maximum values
+    Assert(Value <= 0xFFFFFFFF);
+    uint32 Result = (uint32)Value;
+
+    return(Result);
+}
+
+//
+// NOTE(Marko): Read and Write file functions
+//
+#if WIN_ASSEMBLER_DEBUG
+/*
+    NOTE:
+    IMPORTANT: 
+
+    
+    These are blocking, and the write doesn't protect against locked data. If 
+    we were shipping this assembler, we'd need to make this a lot more robust. 
+
+    To indicate this, we've prefixed the functions and data structures with 
+    "debug" and use them only in debug builds (of course we haven't ever built 
+    a "release" build because this is a toy project)
+ */
+    struct debug_read_file_result
+    {
+        uint32 ContentsSize;
+        void *Contents;
+    };
+
+    #define DEBUG_FREE_FILE_MEMORY(name) void name(void *Memory)
+    typedef DEBUG_FREE_FILE_MEMORY(debug_free_file_memory);
+
+    #define DEBUG_READ_ENTIRE_FILE(name) debug_read_file_result name(char *Filename)
+    typedef DEBUG_READ_ENTIRE_FILE(debug_read_entire_file);
+
+    #define DEBUG_WRITE_ENTIRE_FILE(name) bool32 name(char *Filename, uint32 MemorySize, void *Memory)
+    typedef DEBUG_WRITE_ENTIRE_FILE(debug_write_entire_file);
+#endif
+
 struct asm_string
 {
     char *Contents;
