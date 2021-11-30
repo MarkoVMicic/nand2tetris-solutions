@@ -146,6 +146,28 @@ int main(int argc, char **argv)
     char *InputFilePath = argv[1];
     char *OutputFilePath = argv[2];
 
+    // TODO(Marko): Check if the file extension is correct (i.e. *.asm). 
+    debug_read_file_result InputFileReadResult = DEBUGReadEntireFile(InputFilePath);
+
+    if(InputFileReadResult.Contents != 0)
+    {
+        asm_string AsmString;
+        AsmString.Contents = (char *)InputFileReadResult.Contents;
+        AsmString.Length = InputFileReadResult.ContentsSize;
+
+
+        DEBUGWriteEntireFile(OutputFilePath, AsmString.Length, (void *)AsmString.Contents);
+
+        DEBUGFreeFileMemory(InputFileReadResult.Contents);
+
+    }
+    else
+    {
+        // TODO(Marko): Better logging
+        // NOTE(Marko): InputFileReadResult has no contents!?
+        printf("Error: Filesize is 0. \n");
+    }
+
 
 
     return(0);
