@@ -2,6 +2,8 @@
 #include <windows.h>
 #include "win_assembler.h"
 
+// NOTE(Marko): Doing a unity build. 
+#include "preprocess.cpp"
 // 
 // NOTE(Marko): File Read and File Write functions
 //
@@ -155,6 +157,7 @@ int main(int argc, char **argv)
         AsmString.Contents = (char *)InputFileReadResult.Contents;
         AsmString.Length = InputFileReadResult.ContentsSize;
 
+        PreprocessAsmString(&AsmString);
 
         DEBUGWriteEntireFile(OutputFilePath, AsmString.Length, (void *)AsmString.Contents);
 
