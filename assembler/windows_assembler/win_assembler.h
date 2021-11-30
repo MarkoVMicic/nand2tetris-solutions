@@ -37,6 +37,12 @@ typedef uint64_t uint64;
 
 #define ArrayCount(Array) (sizeof(Array) / sizeof((Array)[0]))
 
+struct asm_string
+{
+    char *Contents;
+    uint32 Length;
+};
+
 
 
 #define WIN_ASSEMBLER_H
