@@ -4,6 +4,8 @@
 
 // NOTE(Marko): Doing a unity build. 
 #include "preprocess.cpp"
+#include "process_symbols.cpp"
+
 // 
 // NOTE(Marko): File Read and File Write functions
 //
@@ -157,7 +159,10 @@ int main(int argc, char **argv)
         AsmString.Contents = (char *)InputFileReadResult.Contents;
         AsmString.Length = InputFileReadResult.ContentsSize;
 
+        OutputDebugString(AsmString.Contents);
         PreprocessAsmString(&AsmString);
+        OutputDebugString(AsmString.Contents);
+        ProcessSymbols(&AsmString);
 
         DEBUGWriteEntireFile(OutputFilePath, AsmString.Length, (void *)AsmString.Contents);
 

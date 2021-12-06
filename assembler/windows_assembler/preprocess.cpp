@@ -28,6 +28,7 @@ internal void RemoveComments(asm_string *AsmString)
 }
 
 
+// TODO(Marko): Rename Count to something more sensible.
 internal void RemoveWhiteSpace(asm_string *AsmString)
 {
     int Count = 0;
