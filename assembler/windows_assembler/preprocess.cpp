@@ -99,6 +99,23 @@ internal void RemoveBlankLines(asm_string *AsmString)
     AsmString->Length -= RemovedCharCount;
 }
 
+internal bool32 IsCharNumber(char Char)
+{
+    bool32 Result = ((Char == '0') &&
+                     (Char == '1') &&
+                     (Char == '2') &&
+                     (Char == '3') &&
+                     (Char == '4') &&
+                     (Char == '5') &&
+                     (Char == '6') &&
+                     (Char == '7') &&
+                     (Char == '8') &&
+                     (Char == '9'));
+
+    return(Result);
+} 
+
+
 
 internal void PreprocessAsmString(asm_string *AsmString)
 {
