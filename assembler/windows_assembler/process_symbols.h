@@ -15,5 +15,25 @@ struct variable_table
     uint16 *VariableAddresses;
 };
 
+
+void DEBUGPrintVariableTable(variable_table *VariableTable, 
+                        uint32 SizeOfVariableTable)
+{
+    printf("Variable Table Printing:\n\n");
+    for(uint32 i = 0; i < SizeOfVariableTable; i++)
+    {
+        uint32 StringLength = VariableTable->VariableNames[i].Length;
+        char *String = VariableTable->VariableNames[i].Contents;
+
+        for(uint32 j = 0; j < StringLength; j++)
+        {
+            printf("%c", String[j]);
+        }
+        printf("\t\t");
+        printf("%u", VariableTable->VariableAddresses[i]);
+        printf("\n");
+    }
+}
+
 #define PROCESS_SYMBOLS_H
 #endif
