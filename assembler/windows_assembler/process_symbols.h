@@ -1,3 +1,5 @@
+#if !defined(PROCESS_SYMBOLS_H)
+
 // NOTE(Marko): The general use case of the variable table is to iterate 
 //              through the VariableNames until we find a match, and only then 
 //              do we go to retrieve the address. Thus we organize the 
@@ -10,6 +12,8 @@
 struct variable_table
 {
     asm_string *VariableNames;
-    uint8 *VariableAddresses;
+    uint16 *VariableAddresses;
 };
 
+#define PROCESS_SYMBOLS_H
+#endif
