@@ -3,8 +3,9 @@
 #include "win_assembler.h"
 
 // NOTE(Marko): Doing a unity build. 
-#include "preprocess.cpp"
 #include "process_symbols.cpp"
+#include "preprocess.cpp"
+
 
 // 
 // NOTE(Marko): File Read and File Write functions
