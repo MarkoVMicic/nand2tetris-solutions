@@ -1,3 +1,5 @@
+#include "preprocess.h"
+
 internal void RemoveComments(asm_string *AsmString)
 {
     // NOTE(Marko): ASM comments are identical to single-line comments in C.
