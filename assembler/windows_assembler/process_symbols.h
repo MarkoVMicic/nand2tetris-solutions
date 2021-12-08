@@ -21,7 +21,8 @@ struct variable_table
 };
 
 
-void DEBUGPrintVariableTable(variable_table *VariableTable)
+
+internal void DEBUGPrintVariableTable(variable_table *VariableTable)
 {
     printf("Variable Table Printing:\n\n");
     for(uint32 i = 0; i < VariableTable->Size; i++)
