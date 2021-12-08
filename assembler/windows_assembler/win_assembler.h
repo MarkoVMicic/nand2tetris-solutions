@@ -160,6 +160,26 @@ inline bool32 IsCharNumber(char Char)
 } 
 
 
+inline bool32 AsmStringsMatch(asm_string *StringA, asm_string *StringB)
+{
+    bool32 Result = false;
+    if(StringA->Length == StringB->Length)
+    {
+        for(uint32 i = 0; i < StringA->Length; i++)
+        {
+            if(StringA->Contents[i] != StringB->Contents[i])
+            {
+                break;
+            }
+        }
+        // NOTE(Marko): If we get here, then the strings must match. 
+        Result = true;         
+    }
+
+    return(Result);
+}
+
+
 
 #define WIN_ASSEMBLER_H
 #endif
