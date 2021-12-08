@@ -139,4 +139,18 @@ internal void InitializeUserDefinedVariableTable(variable_table *VariableTable,
 }
 
 
+internal void FreeVariableTable(variable_table *VariableTable)
+{
+    // NOTE(Marko): First free the strings, and the asm_strings that they're 
+    //              inside
+    for(uint32 i = 0; i < VariableTable->Size; i++)
+    {
+        VirtualFree(VariableTable->VariableNames[i].Contents, 0, MEM_RELEASE);
+        VirtualFree(&VariableTable->VariableNames[i], 0, MEM_RELEASE);
+    }
+
+    // NOTE(Marko): Then release the array of pointers to strings and the 
+    //              array of uint16s
+    VirtualFree(VariableTable->VariableNames, 0, MEM_RELEASE);
+    VirtualFree(VariableTable->VariableAddresses, 0, MEM_RELEASE);
 }
