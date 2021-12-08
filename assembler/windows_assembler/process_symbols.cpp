@@ -17,20 +17,6 @@
 
 #define PREDEFINED_VAR_COUNT 23
 
-// TODO(Marko): This probably belongs in a header file?
-void CopyString(char *SourceString, 
-                uint32 SourceStringLength,
-                char *DestString, 
-                uint32 DestStringLength)
-{
-    Assert(DestStringLength >= SourceStringLength);
-    
-    for(uint32 i = 0; i < DestStringLength; i++)
-    {
-        DestString[i] = SourceString[i];
-    }
-}
-
 inline void AddVariableToVariableTable(variable_table *VariableTable,
                                 uint32 Index, 
                                 char *VariableName, 
