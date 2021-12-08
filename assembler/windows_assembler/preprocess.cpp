@@ -2,11 +2,15 @@
 
 // TODO(Marko): We can probably make a SwapPointers() macro. Figure it out if 
 //              you have some time.
+// TODO(Marko): Conversely, perhaps we should scrap this function and just do 
+//              it inline, because this function forces us to copy all of the 
+//              data in the structs around instead of just swapping the 
+//              pointers... 
 inline void SwapAsmStringPointers(asm_string *A, asm_string *B)
 {
-    asm_string *Temp = A;
-    A = B;
-    B = Temp;
+    asm_string Temp = *A;
+    *A = *B;
+    *B = Temp;
 }
 
 
