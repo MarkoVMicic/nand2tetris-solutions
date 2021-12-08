@@ -181,7 +181,7 @@ int main(int argc, char **argv)
         // NOTE(Marko): This is allocated in PreprocessAsmString(), because we 
         //              don't know how large to make the allocation until 
         //              we've done 1 pass through the asm file. 
-        variable_table UserDefinedVariableTable;
+        variable_table UserDefinedVariableTable = {0};
 
 
 #if 1
