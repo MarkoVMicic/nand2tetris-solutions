@@ -1,6 +1,7 @@
 #include "preprocess.h"
 
-
+// TODO(Marko): We can probably make a SwapPointers() macro. Figure it out if 
+//              you have some time.
 inline void SwapAsmStringPointers(asm_string *A, asm_string *B)
 {
     asm_string *Temp = A;
