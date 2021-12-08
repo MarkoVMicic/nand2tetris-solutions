@@ -1,19 +1,6 @@
 #include "preprocess.h"
 
-internal bool32 IsInVariableTable(variable_table *VariableTable, 
-                                  asm_string *AsmString)
-{                                  
-    bool32 Result = false; 
-    for(uint32 i = 0; i < VariableTable->Size; i++)
-    {
-        if(AsmStringsMatch(&VariableTable->VariableNames[i], AsmString))
-        {
-            Result = true;
-            break;
-        }
-    }
 
-    return(Result);
 }
 
 
