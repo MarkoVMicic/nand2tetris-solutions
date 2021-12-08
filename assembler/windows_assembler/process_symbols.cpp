@@ -35,10 +35,10 @@ internal bool32 IsInVariableTable(variable_table *VariableTable,
 
 
 inline void AddVariableToVariableTable(variable_table *VariableTable,
-                                uint32 Index, 
-                                char *VariableName, 
-                                uint32 VariableNameLength, 
-                                uint16 VariableAddress)
+                                       uint32 Index, 
+                                       char *VariableName, 
+                                       uint32 VariableNameLength, 
+                                       uint16 VariableAddress)
 {
     VariableTable->VariableNames[Index].Contents = 
         (char *)VirtualAlloc(0, 
@@ -54,6 +54,19 @@ inline void AddVariableToVariableTable(variable_table *VariableTable,
 
     VariableTable->VariableAddresses[Index] = VariableAddress;
 
+}
+
+
+inline void AddVariableToVariableTable(variable_table *VariableTable,
+                                       uint32 Index, 
+                                       asm_string *AsmString, 
+                                       uint16 VariableAddress)
+{
+    AddVariableToVariableTable(VariableTable,
+                               Index,
+                               AsmString->Contents,
+                               AsmString->Length,
+                               VariableAddress);
 }
 
 
