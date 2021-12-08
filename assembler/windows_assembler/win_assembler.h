@@ -112,6 +112,37 @@ internal void CopyAsmString(asm_string *SourceAsmString,
 }
 
 
+internal void DebugPrintUInt32(uint32 UInt32)
+{
+    char DebugBuffer[256];
+    sprintf_s(DebugBuffer,"%u\n", UInt32);
+    OutputDebugString(DebugBuffer);
+}
+
+
+
+internal void DebugPrintAsmString(asm_string *AsmString)
+{
+    OutputDebugString("Printing AsmString...\n");
+    OutputDebugString("AsmString Length: ");
+    DebugPrintUInt32(AsmString->Length);
+    char *NullTerminatedAsmString = 
+        (char *)VirtualAlloc(0, 
+                            (AsmString->Length+1)*sizeof(char), 
+                            MEM_COMMIT|MEM_RESERVE, 
+                            PAGE_READWRITE);
+    CopyString(AsmString->Contents, 
+               AsmString->Length, 
+               NullTerminatedAsmString, 
+               AsmString->Length);
+    NullTerminatedAsmString[AsmString->Length] = '\0';
+
+    OutputDebugString(NullTerminatedAsmString);
+    OutputDebugString("\n");
+
+    VirtualFree(NullTerminatedAsmString, 0, MEM_RELEASE);
+}
+
 
 #define WIN_ASSEMBLER_H
 #endif
