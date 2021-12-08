@@ -197,8 +197,11 @@ int main(int argc, char **argv)
                              OldAsmString.Length, 
                              (void *)OldAsmString.Contents);
 
+        // NOTE(Marko): Memory Cleanup
         DEBUGFreeFileMemory(InputFileReadResult.Contents);
         VirtualFree(NewAsmString.Contents, 0, MEM_RELEASE);
+        FreeVariableTable(&PredefinedVariableTable);
+        FreeVariableTable(&UserDefinedVariableTable);
     }
     else
     {
