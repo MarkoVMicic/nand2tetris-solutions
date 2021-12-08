@@ -1,8 +1,12 @@
 #include "preprocess.h"
 
 
+inline void SwapAsmStringPointers(asm_string *A, asm_string *B)
+{
+    asm_string *Temp = A;
+    A = B;
+    B = Temp;
 }
-
 
 
 internal void PreprocessAsmString(asm_string *OldAsmString, 
@@ -162,5 +166,13 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
 
     InitializeUserDefinedVariableTable(UserDefinedVariableTable, 
                                        UserDefinedVariableCount);
+
+    //
+    // NOTE(Marko): Second pass
+    //
+
+    // NOTE(Marko): Swap the AsmStrings so that we can continue selectively 
+    //              copying from Old to New
+    SwapAsmStringPointers(OldAsmString, NewAsmString);
 
 }
