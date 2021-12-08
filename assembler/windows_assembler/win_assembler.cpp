@@ -175,11 +175,23 @@ int main(int argc, char **argv)
         //              length accordingly.
         NewAsmString.Length = OldAsmString.Length;
 
+        variable_table PredefinedVariableTable = 
+            CreatePredefinedVariableTable();
+
+        // NOTE(Marko): This is allocated in PreprocessAsmString(), because we 
+        //              don't know how large to make the allocation until 
+        //              we've done 1 pass through the asm file. 
+        variable_table UserDefinedVariableTable;
+
+
 #if 1
         OutputDebugString("OldAsmString contents: \n");
         OutputDebugString(OldAsmString.Contents);
 #endif
-        PreprocessAsmString(&OldAsmString, &NewAsmString);
+        PreprocessAsmString(&OldAsmString, 
+                            &NewAsmString, 
+                            &PredefinedVariableTable,
+                            &UserDefinedVariableTable);
 
         DEBUGWriteEntireFile(OutputFilePath, 
                              OldAsmString.Length, 

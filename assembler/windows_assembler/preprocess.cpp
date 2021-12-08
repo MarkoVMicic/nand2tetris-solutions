@@ -19,9 +19,14 @@ internal bool32 IsInVariableTable(variable_table *VariableTable,
 
 
 internal void PreprocessAsmString(asm_string *OldAsmString, 
-                                  asm_string *NewAsmString)
+                                  asm_string *NewAsmString,
+                                  variable_table *PredefinedVariableTable,
+                                  variable_table *UserDefinedVariableTable)
 {
-    variable_table PredefinedVariableTable = CreatePredefinedVariableTable();
+
+    //
+    // NOTE(Marko): First pass    
+    //
 
     uint32 NewIndex = 0;
     uint32 RemovedCharsCount = 0;
@@ -92,7 +97,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                         AInstructionSymbol.Length++;
                         CurrentChar++;
                     }
-                    if(!IsInVariableTable(&PredefinedVariableTable, 
+                    if(!IsInVariableTable(PredefinedVariableTable, 
                                           &AInstructionSymbol))
                     {
                         UserDefinedVariableCount++;
