@@ -1,127 +1,170 @@
 #include "preprocess.h"
 
-internal void RemoveComments(asm_string *AsmString)
-{
-    // NOTE(Marko): ASM comments are identical to single-line comments in C.
-
-    for(int i = 0; i < AsmString->Length; i++)
+internal bool32 IsInVariableTable(variable_table *VariableTable, 
+                                  asm_string *AsmString)
+{                                  
+    bool32 Result = false; 
+    for(uint32 i = 0; i < VariableTable->Size; i++)
     {
-        // NOTE(Marko): Look for two consecutive slashes
-        // TODO(Marko): Can AsmString->Contents[i+1] access unallocated 
-        //              memory? Investigate
-        if(AsmString->Contents[i] == '/' && AsmString->Contents[i+1] == '/')
+        if(AsmStringsMatch(&VariableTable->VariableNames[i], AsmString))
         {
-            // NOTE(Marko): Double slash found, so everything until the end of 
-            //              the line is a comment. 
-            int j = i;
-            while(AsmString->Contents[j] != '\n')
-            {
-                j++;
-            }
-            for(int k = 0; k < j-i; k++)
-            {
-                // NOTE(Marko): Since we later remove all whitespace, its 
-                //              convenient to just replace all the comments 
-                //              with whitespace. 
-                AsmString->Contents[i+k] = ' ';
-            }
+            Result = true;
+            break;
         }
     }
-}
-
-
-// TODO(Marko): Rename Count to something more sensible.
-internal void RemoveWhiteSpace(asm_string *AsmString)
-{
-    int Count = 0;
-    int RemovedCharCount = 0;
-    for(int i = 0; i < AsmString->Length; i++)
-    {
-        // NOTE(Marko): If we encounter a space, we will remove it. This shortens the string length. If we don't encounter a space, we'll copy whatever is at the ith position into the count position. 
-        if(AsmString->Contents[i] != ' ')
-        {
-            AsmString->Contents[Count++] = AsmString->Contents[i];
-        }
-        else
-        {
-            RemovedCharCount++;
-        }
-    }
-    // NOTE(Marko): Need to null terminate the string.
-    AsmString->Contents[Count] = '\0';
-    AsmString->Length -= RemovedCharCount;
-}
-
-
-internal void RemoveTabs(asm_string *AsmString)
-{
-    int Count = 0;
-    int RemovedCharCount = 0;
-    for(int i = 0; i < AsmString->Length; i++)
-    {
-        if(AsmString->Contents[i] == '\t')
-        {
-            RemovedCharCount++;
-        }
-        else
-        {
-            AsmString->Contents[Count++] = AsmString->Contents[i];
-        }
-    }
-    AsmString->Contents[Count] = '\0';
-    AsmString->Length -= RemovedCharCount;
-}
-
-
-internal void RemoveBlankLines(asm_string *AsmString)
-{
-    int Count = 0;
-    int RemovedCharCount = 0;
-    for(int i = 0; i < AsmString->Length; i++)
-    {
-        // NOTE(Marko): Remove Carriage Returns
-        if(AsmString->Contents[i] == '\r')
-        {
-            RemovedCharCount++;
-        }
-        // NOTE(Marko): Remove consecutive newlines
-        else if((i > 0) && (AsmString->Contents[i] == '\n') && AsmString->Contents[i-1] == '\n')
-        {
-            RemovedCharCount++;
-        }
-        else
-        {
-            AsmString->Contents[Count++] = AsmString->Contents[i];
-        }
-    }
-    // NOTE(Marko): Need to null terminate the string.
-    AsmString->Contents[Count] = '\0';
-    AsmString->Length -= RemovedCharCount;
-}
-
-internal bool32 IsCharNumber(char Char)
-{
-    bool32 Result = ((Char == '0') &&
-                     (Char == '1') &&
-                     (Char == '2') &&
-                     (Char == '3') &&
-                     (Char == '4') &&
-                     (Char == '5') &&
-                     (Char == '6') &&
-                     (Char == '7') &&
-                     (Char == '8') &&
-                     (Char == '9'));
 
     return(Result);
-} 
+}
 
 
 
-internal void PreprocessAsmString(asm_string *AsmString)
+internal void PreprocessAsmString(asm_string *OldAsmString, 
+                                  asm_string *NewAsmString)
 {
-    // TODO(Marko): Should be able to do all of this in a single pass instead of multiple passes like this. 
-    RemoveComments(AsmString);
-    RemoveWhiteSpace(AsmString);
-    RemoveTabs(AsmString);
-    RemoveBlankLines(AsmString);
+    variable_table PredefinedVariableTable = CreatePredefinedVariableTable();
+
+    uint32 NewIndex = 0;
+    uint32 RemovedCharsCount = 0;
+    uint32 UserDefinedVariableCount = 0;
+    for(uint32 OldIndex = 0; OldIndex < OldAsmString->Length; OldIndex++)
+    {
+        // TODO(Marko): pull out the copying of the character into an inline 
+        //              function? This would avoid code copy-pasta
+        // TODO(Marko): This is a useful place to start recording errors. What 
+        //              would we need to do that? An error struct maybe, which 
+        //              gets passed into here, and written to, and returned? 
+        //              Also need to keep track of line count to provide 
+        //              context for those errors. 
+        switch(OldAsmString->Contents[OldIndex])
+        {
+            // NOTE(Marko): Ignore everything until end of line if there is 
+            //              indeed a comment
+            // TODO(Marko): Multi-line comments leave a trail of \n. It's not 
+            //              important to deal with this, but it would be nice 
+            //              to. 
+            case COMMENT_SLASH:
+            {
+                if((OldIndex < OldAsmString->Length - 1) &&
+                   (OldAsmString->Contents[OldIndex + 1] == COMMENT_SLASH))
+                {
+                    while(OldAsmString->Contents[OldIndex] != NEWLINE)
+                    {
+                        OldIndex++;
+                        RemovedCharsCount++;
+                    }
+                    // NOTE(Marko): Copy the newline char into the 
+                    //              NewAsmString (take note that they are 
+                    //              using different indices so we need to 
+                    //              manually increment NewIndex)
+                    NewAsmString->Contents[NewIndex] = 
+                        OldAsmString->Contents[OldIndex];
+                    NewIndex++;
+                }
+            } break;
+
+            case A_INSTRUCTION_SYMBOL:
+            {
+                // NOTE(Marko): If the character immediately following the 
+                //              A_INSTRUCTION_SYMBOL is a number, then we have 
+                //              a direct memory access, and can simply copy it 
+                //              over. Thus we check for the case where it is 
+                //              NOT a number, in which case we need to check 
+                //              if it is in the predefined variable table. If 
+                //              it's not, then we increment the count of
+                //              user-defined variables, which we will use to
+                //              allocate memory for a user-defined variable 
+                //              table later. 
+                if((OldIndex < OldAsmString->Length - 1) && 
+                   (!IsCharNumber(OldAsmString->Contents[OldIndex])))
+                {
+                    asm_string AInstructionSymbol;
+                    // NOTE(Marko): AInstructionSymbol.Contents now points to 
+                    //              already-allocated memory. 
+                    AInstructionSymbol.Contents = &OldAsmString->Contents[OldIndex+1];
+                    AInstructionSymbol.Length = 0;
+                    char *CurrentChar = AInstructionSymbol.Contents;
+                    // NOTE(Marko): Go to the end of the word
+                    while((*CurrentChar != NEWLINE) && 
+                          (*CurrentChar != WHITESPACE) &&
+                          (*CurrentChar != TAB) &&
+                          (*CurrentChar != CARRIAGE_RETURN))
+                    {
+                        AInstructionSymbol.Length++;
+                        CurrentChar++;
+                    }
+                    if(!IsInVariableTable(&PredefinedVariableTable, 
+                                          &AInstructionSymbol))
+                    {
+                        UserDefinedVariableCount++;
+                    }
+                }
+                // NOTE(Marko): Copy over the character from the old string to 
+                //              the new string (take note that they are using 
+                //              different indices so we need to manually 
+                //              increment NewIndex)
+                NewAsmString->Contents[NewIndex] = 
+                    OldAsmString->Contents[OldIndex];
+                NewIndex++;
+            } break;
+
+            // NOTE(Marko): Do not copy over whitespaces, Tabs, and Carriage 
+            //              Returns. While I could skip writing the break; and 
+            //              just do a fall through, that would make the code a 
+            //              bit harder to read since when I read the code, I 
+            //              usually expect to see a break; at the end of each 
+            //              case statement. 
+            case WHITESPACE:
+            {
+                RemovedCharsCount++;
+            } break;
+
+            case TAB:
+            {
+                RemovedCharsCount++;
+            } break;
+
+            case CARRIAGE_RETURN:
+            {
+                RemovedCharsCount++;
+            } break;
+
+            // NOTE(Marko): Remove duplicate newlines
+            case NEWLINE:
+            {
+                if((OldIndex < OldAsmString->Length - 1) &&
+                   (OldAsmString->Contents[OldIndex+1] == NEWLINE))
+                {
+                    RemovedCharsCount++;
+                }
+                else
+                {
+                    // NOTE(Marko): Copy over the character from the old 
+                    //              string to the new string (take note that 
+                    //              they are using 
+                    //              different indices so we need to manually 
+                    //              increment NewIndex)
+                    NewAsmString->Contents[NewIndex] = 
+                        OldAsmString->Contents[OldIndex];
+                    NewIndex++; 
+                }
+            } break;
+
+            default:
+            {
+                // NOTE(Marko): Copy over the character from the old string to 
+                //              the new string (take note that they are using 
+                //              different indices so we need to manually 
+                //              increment NewIndex)
+                NewAsmString->Contents[NewIndex] = 
+                    OldAsmString->Contents[OldIndex];
+                NewIndex++;
+            }
+        }
+    }
+    NewAsmString->Length -= RemovedCharsCount;
+
+    DebugPrintAsmString(NewAsmString); 
+
+    OutputDebugString("User-defined Variable Count: ");
+    DebugPrintUInt32(UserDefinedVariableCount);
 }

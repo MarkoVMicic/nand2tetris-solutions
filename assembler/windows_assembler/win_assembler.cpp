@@ -156,19 +156,37 @@ int main(int argc, char **argv)
 
     if(InputFileReadResult.Contents != 0)
     {
-        asm_string AsmString;
-        AsmString.Contents = (char *)InputFileReadResult.Contents;
-        AsmString.Length = InputFileReadResult.ContentsSize;
+        // NOTE(Marko): Here, we create two blocks of memory of identical size: one for OldAsmString and one for NewAsmString. For each pass through the string of assembly instructions, we will selectively copy over characters from OldAsmString to NewAsmString. At the end of each pass, we will swap them (i.e. NewAsmString becomes OldAsmString, and vice versa). In this way, we can easily manage the editing of the strings without having to worry about multiple allocations and frees. Indeed the only thing we need to allocate on the heap are two strings, of equal size. Since we remove all the comments and whitespace, it's unlikely that we will ever need more space. And since asm_string keeps track of length, it's easy to find out when we've come to the end of any of those strings even after extensive editing.  
+        // TODO: Create the predefined variable table here? Or not... consider it. 
+        asm_string OldAsmString;
+        OldAsmString.Contents = (char *)InputFileReadResult.Contents;
+        OldAsmString.Length = InputFileReadResult.ContentsSize;
 
-        OutputDebugString(AsmString.Contents);
-        PreprocessAsmString(&AsmString);
-        OutputDebugString(AsmString.Contents);
-        ProcessSymbols(&AsmString);
+        asm_string NewAsmString;
+        NewAsmString.Contents = 
+            (char *)VirtualAlloc(0, 
+                                 OldAsmString.Length*sizeof(char), 
+                                 MEM_COMMIT | MEM_RESERVE, 
+                                 PAGE_READWRITE);
+        // NOTE(Marko): NewAsmString starts off empty, but we initialize it 
+        //              with the same length as OldAsmString. When we 
+        //              selectively copy over chars from OldAsmString to 
+        //              NewAsmString for the first time, we will decrease the 
+        //              length accordingly.
+        NewAsmString.Length = OldAsmString.Length;
 
-        DEBUGWriteEntireFile(OutputFilePath, AsmString.Length, (void *)AsmString.Contents);
+#if 1
+        OutputDebugString("OldAsmString contents: \n");
+        OutputDebugString(OldAsmString.Contents);
+#endif
+        PreprocessAsmString(&OldAsmString, &NewAsmString);
+
+        DEBUGWriteEntireFile(OutputFilePath, 
+                             OldAsmString.Length, 
+                             (void *)OldAsmString.Contents);
 
         DEBUGFreeFileMemory(InputFileReadResult.Contents);
-
+        VirtualFree(NewAsmString.Contents, 0, MEM_RELEASE);
     }
     else
     {
