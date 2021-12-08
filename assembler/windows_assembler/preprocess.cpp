@@ -159,4 +159,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
 
     OutputDebugString("User-defined Variable Count: ");
     DebugPrintUInt32(UserDefinedVariableCount);
+
+    InitializeUserDefinedVariableTable(UserDefinedVariableTable, 
+                                       UserDefinedVariableCount);
+
 }

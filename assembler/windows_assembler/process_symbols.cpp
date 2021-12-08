@@ -87,7 +87,10 @@ variable_table CreatePredefinedVariableTable(void)
 
     Result.Size = PREDEFINED_VAR_COUNT;
 
-    // NOTE(Marko): IMPORTANT: I didn't null-terminate these strings. This shouldn't be a big problem coz I use asm_string struct which has the length, but just noting this here. 
+    // NOTE(Marko): IMPORTANT: I didn't null-terminate these strings. This 
+    //                         shouldn't be a big problem coz I use asm_string 
+    //                         struct which has the length, but just noting 
+    //                         this here. 
     AddVariableToVariableTable(&Result, 0, "R0", 2, (uint16)0);
     AddVariableToVariableTable(&Result, 1, "R1", 2, (uint16)1);
     AddVariableToVariableTable(&Result, 2, "R2", 2, (uint16)2);
@@ -118,7 +121,22 @@ variable_table CreatePredefinedVariableTable(void)
     return(Result);                                             
 }
 
-internal void ProcessSymbols(asm_string *AsmString)
+internal void InitializeUserDefinedVariableTable(variable_table *VariableTable,
+                                                 uint32 Size)
 {
-    
+    VariableTable->Size = Size;
+
+    VariableTable->VariableNames = 
+        (asm_string *)VirtualAlloc(0, 
+                                   VariableTable->Size*sizeof(asm_string),
+                                   MEM_COMMIT | MEM_RESERVE, 
+                                   PAGE_READWRITE);
+    VariableTable->VariableAddresses = 
+        (uint16 *)VirtualAlloc(0, 
+                               VariableTable->Size*sizeof(uint16), 
+                               MEM_COMMIT | MEM_RESERVE, 
+                               PAGE_READWRITE);
+}
+
+
 }
