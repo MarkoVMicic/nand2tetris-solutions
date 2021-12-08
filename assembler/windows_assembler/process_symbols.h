@@ -9,10 +9,15 @@
 //              the VariableNames. 
 // TODO(Marko): We can probably turn this into a hash table. Explore this 
 //              possibility. 
+// TODO(Marko): Do I want to split up the variable_table struct into a 
+//              predefined one and user defined one? This is worth considering 
+//              because I know ahead of time how big the predefined variable 
+//              table is. 
 struct variable_table
 {
     asm_string *VariableNames;
     uint16 *VariableAddresses;
+    uint32 Size;
 };
 
 

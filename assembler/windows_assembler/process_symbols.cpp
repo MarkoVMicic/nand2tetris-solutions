@@ -21,7 +21,6 @@ inline void AddVariableToVariableTable(variable_table *VariableTable,
                                 uint32 Index, 
                                 char *VariableName, 
                                 uint32 VariableNameLength, 
-                                uint8 VariableAddress)
                                 uint16 VariableAddress)
 {
     VariableTable->VariableNames[Index].Contents = 
@@ -56,6 +55,8 @@ variable_table CreatePredefinedVariableTable(void)
                               MEM_RESERVE|MEM_COMMIT,
                               PAGE_READWRITE);
 
+    Result.Size = PREDEFINED_VAR_COUNT;
+
     // NOTE(Marko): IMPORTANT: I didn't null-terminate these strings. This shouldn't be a big problem coz I use asm_string struct which has the length, but just noting this here. 
     AddVariableToVariableTable(&Result, 0, "R0", 2, (uint16)0);
     AddVariableToVariableTable(&Result, 1, "R1", 2, (uint16)1);
@@ -82,11 +83,12 @@ variable_table CreatePredefinedVariableTable(void)
     AddVariableToVariableTable(&Result, 21, "THIS", 4, (uint16)3);
     AddVariableToVariableTable(&Result, 22, "THAT", 4, (uint16)4);
 
+    DEBUGPrintVariableTable(&Result);
 
     return(Result);                                             
 }
 
 internal void ProcessSymbols(asm_string *AsmString)
 {
-    variable_table PredefinedVariableTable = CreatePredefinedVariableTable();
+    
 }
