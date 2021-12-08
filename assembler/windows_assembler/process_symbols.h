@@ -21,11 +21,10 @@ struct variable_table
 };
 
 
-void DEBUGPrintVariableTable(variable_table *VariableTable, 
-                        uint32 SizeOfVariableTable)
+void DEBUGPrintVariableTable(variable_table *VariableTable)
 {
     printf("Variable Table Printing:\n\n");
-    for(uint32 i = 0; i < SizeOfVariableTable; i++)
+    for(uint32 i = 0; i < VariableTable->Size; i++)
     {
         uint32 StringLength = VariableTable->VariableNames[i].Length;
         char *String = VariableTable->VariableNames[i].Contents;
