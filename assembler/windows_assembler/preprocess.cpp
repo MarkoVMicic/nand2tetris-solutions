@@ -75,7 +75,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 //              allocate memory for a user-defined variable 
                 //              table later. 
                 if((OldIndex < OldAsmString->Length - 1) && 
-                   (!IsCharNumber(OldAsmString->Contents[OldIndex])))
+                   (!IsCharNumber(OldAsmString->Contents[OldIndex+1])))
                 {
                     asm_string AInstructionSymbol;
                     // NOTE(Marko): AInstructionSymbol.Contents now points to 
