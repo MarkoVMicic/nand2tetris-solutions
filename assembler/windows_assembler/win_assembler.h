@@ -86,6 +86,32 @@ struct asm_string
 };
 
 
+internal void CopyString(char *SourceString, 
+                         uint32 SourceStringLength,
+                         char *DestString, 
+                         uint32 DestStringLength)
+{
+    Assert(DestStringLength >= SourceStringLength);
+    
+    for(uint32 i = 0; i < DestStringLength; i++)
+    {
+        DestString[i] = SourceString[i];
+    }
+}
+
+
+// TODO(Marko): Make use of this function instead of using CopyString() 
+//              directly?
+internal void CopyAsmString(asm_string *SourceAsmString,
+                            asm_string *DestAsmString)
+{
+    CopyString(SourceAsmString->Contents,
+               SourceAsmString->Length,
+               DestAsmString->Contents,
+               DestAsmString->Length);
+}
+
+
 
 #define WIN_ASSEMBLER_H
 #endif
