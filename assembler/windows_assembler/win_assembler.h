@@ -86,6 +86,100 @@ struct asm_string
 };
 
 
+internal void CopyString(char *SourceString, 
+                         uint32 SourceStringLength,
+                         char *DestString, 
+                         uint32 DestStringLength)
+{
+    Assert(DestStringLength >= SourceStringLength);
+    
+    for(uint32 i = 0; i < DestStringLength; i++)
+    {
+        DestString[i] = SourceString[i];
+    }
+}
+
+
+// TODO(Marko): Make use of this function instead of using CopyString() 
+//              directly?
+internal void CopyAsmString(asm_string *SourceAsmString,
+                            asm_string *DestAsmString)
+{
+    CopyString(SourceAsmString->Contents,
+               SourceAsmString->Length,
+               DestAsmString->Contents,
+               DestAsmString->Length);
+}
+
+
+internal void DebugPrintUInt32(uint32 UInt32)
+{
+    char DebugBuffer[256];
+    sprintf_s(DebugBuffer,"%u\n", UInt32);
+    OutputDebugString(DebugBuffer);
+}
+
+
+
+internal void DebugPrintAsmString(asm_string *AsmString)
+{
+    OutputDebugString("Printing AsmString...\n");
+    OutputDebugString("AsmString Length: ");
+    DebugPrintUInt32(AsmString->Length);
+    char *NullTerminatedAsmString = 
+        (char *)VirtualAlloc(0, 
+                            (AsmString->Length+1)*sizeof(char), 
+                            MEM_COMMIT|MEM_RESERVE, 
+                            PAGE_READWRITE);
+    CopyString(AsmString->Contents, 
+               AsmString->Length, 
+               NullTerminatedAsmString, 
+               AsmString->Length);
+    NullTerminatedAsmString[AsmString->Length] = '\0';
+
+    OutputDebugString(NullTerminatedAsmString);
+    OutputDebugString("\n");
+
+    VirtualFree(NullTerminatedAsmString, 0, MEM_RELEASE);
+}
+
+inline bool32 IsCharNumber(char Char)
+{
+    bool32 Result = ((Char == '0') &&
+                     (Char == '1') &&
+                     (Char == '2') &&
+                     (Char == '3') &&
+                     (Char == '4') &&
+                     (Char == '5') &&
+                     (Char == '6') &&
+                     (Char == '7') &&
+                     (Char == '8') &&
+                     (Char == '9'));
+
+    return(Result);
+} 
+
+
+inline bool32 AsmStringsMatch(asm_string *StringA, asm_string *StringB)
+{
+    bool32 Result = false;
+    if(StringA->Length == StringB->Length)
+    {
+        for(uint32 i = 0; i < StringA->Length; i++)
+        {
+            if(StringA->Contents[i] != StringB->Contents[i])
+            {
+                break;
+            }
+        }
+        // NOTE(Marko): If we get here, then the strings must match. 
+        Result = true;         
+    }
+
+    return(Result);
+}
+
+
 
 #define WIN_ASSEMBLER_H
 #endif
