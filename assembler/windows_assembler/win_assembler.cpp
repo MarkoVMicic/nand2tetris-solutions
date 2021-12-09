@@ -183,6 +183,9 @@ int main(int argc, char **argv)
         //              we've done 1 pass through the asm file. 
         variable_table UserDefinedVariableTable = {0};
 
+        // We need the line count to allocate the machine code asm_string.
+        uint32 LineCount = 0;
+
 
 #if 1
         OutputDebugString("OldAsmString contents: \n");
@@ -191,7 +194,8 @@ int main(int argc, char **argv)
         PreprocessAsmString(&OldAsmString, 
                             &NewAsmString, 
                             &PredefinedVariableTable,
-                            &UserDefinedVariableTable);
+                            &UserDefinedVariableTable,
+                            &LineCount);
 
         DEBUGWriteEntireFile(OutputFilePath, 
                              OldAsmString.Length, 

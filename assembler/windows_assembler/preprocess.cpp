@@ -73,7 +73,8 @@ asm_string UInt16ToAsmString(uint16 UInt16)
 internal void PreprocessAsmString(asm_string *OldAsmString, 
                                   asm_string *NewAsmString,
                                   variable_table *PredefinedVariableTable,
-                                  variable_table *UserDefinedVariableTable)
+                                  variable_table *UserDefinedVariableTable,
+                                  uint32 *LineCount)
 {
     // TODO(Marko): Considering scoping each pass. 
     //
@@ -244,12 +245,16 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
             }
         }
     }
+
+    // NOTE(Marko): Adjust the length of both strings
     NewAsmString->Length -= RemovedCharsCount;
+    OldAsmString->Length -= RemovedCharsCount;
 
     DebugPrintAsmString(NewAsmString); 
 
     OutputDebugString("User-defined Variable Count: ");
     DebugPrintUInt32(UserDefinedVariableCount);
+
 
     InitializeUserDefinedVariableTable(UserDefinedVariableTable, 
                                        UserDefinedVariableCount);
