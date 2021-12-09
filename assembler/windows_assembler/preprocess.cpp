@@ -83,6 +83,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     uint32 NewIndex = 0;
     uint32 RemovedCharsCount = 0;
     uint32 UserDefinedVariableCount = 0;
+    uint32 LabelCount = 0;
     for(uint32 OldIndex = 0; OldIndex < OldAsmString->Length; OldIndex++)
     {
         // TODO(Marko): pull out the copying of the character into an inline 
@@ -204,6 +205,31 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                         OldAsmString->Contents[OldIndex];
                     NewIndex++; 
                 }
+            } break;
+
+
+            // TODO(Marko): We can check for illegal whitespace inside a 
+            //              bracket for errors. 
+            // TODO(Marko): Are consecutive labels allowed? I don't think they 
+            //              should be. Don't need to handle this to pass the 
+            //              nand2tetris test cases but still, here is a useful 
+            //              place to check, by seeking to the newline and then 
+            //              checking the next char isn't an open bracket.
+            // TODO(Marko): Make sure the previous char is a newline (i.e. 
+            //              you're not dealing with a random bracket in the 
+            //              middle of a line) 
+            case OPEN_BRACKET:
+            {   
+                // NOTE(Marko): Copy over the character from the old 
+                //              string to the new string (take note that 
+                //              they are using 
+                //              different indices so we need to manually 
+                //              increment NewIndex)
+                NewAsmString->Contents[NewIndex] = 
+                    OldAsmString->Contents[OldIndex];
+                NewIndex++; 
+
+                LabelCount++;
             } break;
 
             default:
