@@ -399,6 +399,36 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 }
             } break;
 
+            case OPEN_BRACKET:
+            {
+                asm_string LabelSymbol;
+                // NOTE(Marko): LabelSymbol.Contents now points to 
+                //              already-allocated memory. No need to alloc or 
+                //              free. 
+                LabelSymbol.Contents = &OldAsmString->Contents[OldIndex+1];
+                LabelSymbol.Length = 0;
+                char *CurrentChar = LabelSymbol.Contents;
+                while(*CurrentChar != CLOSED_BRACKET)
+                {
+                    LabelSymbol.Length++;
+                    CurrentChar++;
+                }
+
+                // NOTE(Marko): Add the LabelSymbol to the LabelTable 
+                //              using the LineCount. Then decrement LineCount 
+                //              because the label is not supposed to be a 
+                //              program instruction (so it doesn't count as a 
+                //              line)! 
+                AddVariableToVariableTable(&LabelTable,
+                                           CurrentLabelIndex,
+                                           &LabelSymbol,
+                                           *LineCount);
+                CurrentLabelIndex++;
+                *LineCount--;
+
+
+            }
+
         }
     }
 }
