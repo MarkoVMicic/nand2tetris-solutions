@@ -309,6 +309,96 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 *LineCount++;  
             } break;
 
+            case A_INSTRUCTION_SYMBOL:
+            {
+                // NOTE(Marko): First copy the @ over
+                NewAsmString->Contents[NewIndex] = 
+                    OldAsmString->Contents[OldIndex];
+                NewIndex++;
+                // NOTE(Marko): Then check if the next symbol is a number
+                if((OldIndex <OldAsmString->Length - 1) &&
+                   (!IsCharNumber(OldAsmString->Contents[OldIndex+1]))) 
+                {
+                    asm_string AInstructionSymbol;
+                    // NOTE(Marko): AInstructionSymbol.Contents now points to 
+                    //              already-allocated memory. No need to alloc 
+                    //              or free
+                    AInstructionSymbol.Contents = &OldAsmString->Contents[OldIndex+1];
+                    AInstructionSymbol.Length = 0;
+                    char *CurrentChar = AInstructionSymbol.Contents;
+                    // NOTE(Marko): Go to the end of the word
+                    while(*CurrentChar != NEWLINE)
+                    {
+                        AInstructionSymbol.Length++;
+                        CurrentChar++;
+                    }
+                    uint32 FoundIndex = 0;
+                    if(WhereInVariableTable(PredefinedVariableTable, 
+                                            &AInstructionSymbol,
+                                            &FoundIndex))
+                    {
+                        // NOTE(Marko): Retrieve the matched entry, stringify 
+                        //              the VariableAddress, and copy that 
+                        //              into NewAsmString, then increment 
+                        //              OldAsmString to NEWLINE and copy that 
+                        //              also into NewAsmString. After that, 
+                        //              the for-loop will increment 
+                        //              OldAsmString to the newline, and 
+                        //              NewAsmString will be awaiting to copy 
+                        //              something into the slot just after its 
+                        //              NEWLINE char.
+                        uint16 VariableAddress = PredefinedVariableTable->VariableAddresses[FoundIndex];
+                        asm_string StringedVariableAddress = 
+                            UInt16ToAsmString(VariableAddress);
+
+                        CopyString(StringedVariableAddress.Contents,
+                                   StringedVariableAddress.Length,
+                                   NewAsmString->Contents + NewIndex,
+                                   NewAsmString->Length - RemovedCharsCount);
+
+                        RemovedCharsCount += StringedVariableAddress.Length;
+                        NewIndex += StringedVariableAddress.Length;
+
+                        while(OldAsmString->Contents[OldIndex] != NEWLINE)
+                        {
+                            OldIndex++;
+                        }
+                        // NOTE(Marko): We've seeked to a newline 
+                        //              decrement OldIndex. Then the switch 
+                        //              statement can handle the newline
+                        OldIndex--;
+
+                    }
+                    else if(WhereInVariableTable(UserDefinedVariableTable,
+                                                 &AInstructionSymbol,
+                                                 &FoundIndex))
+                    {
+                        // NOTE(Marko): We have found a match in 
+                        //              UserDefinedVariableTable. At this 
+                        //              point, all the addresses here 
+                        //              should be UNINITIALIZED_ADDRESS 
+                        //              (because we haven't yet used the 
+                        //              LabelTable to figure out the 
+                        //              addresses). So we do nothing. 
+
+                    }
+                    else
+                    {
+                        // NOTE(Marko): This is our first time seeing this 
+                        //              VariableName, so add it to the 
+                        //              UserDefinedVariableTable and increment 
+                        //              the CurrentUserDefinedIndex.
+                        AddVariableToVariableTable(UserDefinedVariableTable,
+                                                   CurrentUserDefinedIndex,
+                                                   &AInstructionSymbol,
+                                                   UNINITIALIZED_ADDRESS);
+
+                        CurrentUserDefinedIndex++;
+                    }
+
+                }
+            } break;
+
         }
     }
 }
