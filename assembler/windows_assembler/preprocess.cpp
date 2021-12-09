@@ -429,6 +429,18 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
 
             }
 
+            default:
+            {
+                // NOTE(Marko): Copy over the character from the old string to 
+                //              the new string (take note that they are using 
+                //              different indices so we need to manually 
+                //              increment NewIndex)
+                NewAsmString->Contents[NewIndex] = 
+                    OldAsmString->Contents[OldIndex];
+                NewIndex++;               
+            }
+        }
+    }
         }
     }
 }
