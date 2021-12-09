@@ -139,6 +139,28 @@ internal void InitializeUserDefinedVariableTable(variable_table *VariableTable,
 }
 
 
+internal variable_table CreateLabelTable(uint32 Size)
+{
+    variable_table Result = {0};
+    Result.Size = Size;
+
+    // TODO(Marko): Check that VirtualAlloc() succeeded before moving on! 
+    Result.VariableNames =
+        (asm_string *)VirtualAlloc(0,
+                                   Result.Size*sizeof(asm_string),
+                                   MEM_COMMIT | MEM_RELEASE,
+                                   PAGE_READWRITE);
+
+    Result.VariableAddresses = 
+        (uint16 *)VirtualAlloc(0,
+                               Result.Size*sizeof(uint16),
+                               MEM_COMMIT | MEM_RELEASE,
+                               PAGE_READWRITE);
+
+    return(Result);
+} 
+
+
 internal void FreeVariableTable(variable_table *VariableTable)
 {
     // NOTE(Marko): First free the strings, and the asm_strings that they're 

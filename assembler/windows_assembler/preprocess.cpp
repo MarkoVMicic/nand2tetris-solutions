@@ -254,6 +254,12 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     InitializeUserDefinedVariableTable(UserDefinedVariableTable, 
                                        UserDefinedVariableCount);
 
+    // NOTE(Marko): Creating a label table. This LabelTabel will be freed at
+    //              the end of this function
+
+    variable_table LabelTable = CreateLabelTable(LabelCount);
+
+
     //
     // NOTE(Marko): Second pass
     //
