@@ -34,6 +34,28 @@ internal bool32 IsInVariableTable(variable_table *VariableTable,
 }
 
 
+internal bool32 WhereInVariableTable(variable_table *VariableTable,
+                                     asm_string *AsmString,
+                                     uint32 *FoundIndex)
+{
+    // NOTE(Marko): This function will return a bool32 of false if nothing was 
+    //              found, and true if something was found. It will put the 
+    //              index of the found VariableTable entry into Index
+    bool32 Result = false; 
+    for(uint32 i = 0; i < VariableTable->Size; i++)
+    {
+        if(AsmStringsMatch(&VariableTable->VariableNames[i], AsmString))
+        {
+            Result = true;
+            *FoundIndex = i;
+            break;
+        }
+    }
+
+    return(Result);
+}                                     
+
+
 inline void AddVariableToVariableTable(variable_table *VariableTable,
                                        uint32 Index, 
                                        char *VariableName, 
