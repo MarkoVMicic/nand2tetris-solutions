@@ -288,4 +288,27 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
         FirstNonNewLineCharIndex++;
     }
 
+    for(uint32 OldIndex = FirstNonNewLineCharIndex; 
+        OldIndex < OldAsmString->Length; 
+        OldIndex++)
+    {
+        switch(OldAsmString->Contents[OldIndex])
+        {
+            case NEWLINE:
+            {
+                // NOTE(Marko): Remove consecutive newlines
+                while((OldIndex < OldAsmString->Length-1) && 
+                      (OldAsmString->Contents[OldIndex+1] == NEWLINE))
+                {
+                    OldIndex++;
+                    RemovedCharsCount++;
+                }
+                NewAsmString->Contents[NewIndex] = 
+                    OldAsmString->Contents[OldIndex];
+                NewIndex++;
+                *LineCount++;  
+            } break;
+
+        }
+    }
 }
