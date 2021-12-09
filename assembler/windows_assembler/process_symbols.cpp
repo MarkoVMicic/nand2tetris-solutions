@@ -146,6 +146,7 @@ variable_table CreatePredefinedVariableTable(void)
 internal void InitializeUserDefinedVariableTable(variable_table *VariableTable,
                                                  uint32 Size)
 {
+    // TODO(Marko): Check that VirtualAlloc() succeeded before moving on! 
     VariableTable->Size = Size;
 
     VariableTable->VariableNames = 
@@ -170,13 +171,13 @@ internal variable_table CreateLabelTable(uint32 Size)
     Result.VariableNames =
         (asm_string *)VirtualAlloc(0,
                                    Result.Size*sizeof(asm_string),
-                                   MEM_COMMIT | MEM_RELEASE,
+                                   MEM_COMMIT | MEM_RESERVE,
                                    PAGE_READWRITE);
 
     Result.VariableAddresses = 
         (uint16 *)VirtualAlloc(0,
                                Result.Size*sizeof(uint16),
-                               MEM_COMMIT | MEM_RELEASE,
+                               MEM_COMMIT | MEM_RESERVE,
                                PAGE_READWRITE);
 
     return(Result);
