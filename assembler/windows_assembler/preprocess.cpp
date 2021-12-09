@@ -449,6 +449,19 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     // NOTE(Marko): Swap the pointers back again now that the second pass is 
     //              done. 
     SwapAsmStringPointers(OldAsmString, NewAsmString);
+
+
+    // TODO(Marko): Iterate through the Label Table to fill in the addresses 
+    //              of the Variable Table. 
+    for(uint32 LabelIndex = 0; LabelIndex < LabelTable.Size; LabelIndex++)
+    {
+        uint32 FoundIndex = 0;
+        if(WhereInVariableTable(UserDefinedVariableTable, 
+                        &LabelTable.VariableNames[LabelIndex], 
+                        &FoundIndex))
+        {
+            UserDefinedVariableTable->VariableAddresses[FoundIndex] = 
+                LabelTable.VariableAddresses[LabelIndex];
         }
     }
 }
