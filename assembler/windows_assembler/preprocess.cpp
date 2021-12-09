@@ -77,6 +77,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                                   uint32 *LineCount)
 {
     // TODO(Marko): Considering scoping each pass. 
+ 
     //
     // NOTE(Marko): First pass    
     //
@@ -98,9 +99,6 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
         {
             // NOTE(Marko): Ignore everything until end of line if there is 
             //              indeed a comment
-            // TODO(Marko): Multi-line comments leave a trail of \n. It's not 
-            //              important to deal with this, but it would be nice 
-            //              to. 
             case COMMENT_SLASH:
             {
                 if((OldIndex < OldAsmString->Length - 1) &&
@@ -272,5 +270,22 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     // NOTE(Marko): Swap the AsmStrings so that we can continue selectively 
     //              copying from Old to New
     SwapAsmStringPointers(OldAsmString, NewAsmString);
+
+    
+    RemovedCharsCount = 0;
+    NewIndex = 0;
+    *LineCount = 0;
+    uint32 CurrentUserDefinedIndex = 0;
+    uint32 CurrentLabelIndex = 0;
+    
+    // NOTE(Marko): This is where we basically remove all the leading newline 
+    //              chars -- we start the for loop through OldAsmString from 
+    //              the first non-newline char
+    uint32 FirstNonNewLineCharIndex = 0;
+    while(OldAsmString->Contents[FirstNonNewLineCharIndex] == NEWLINE)
+    {
+        RemovedCharsCount++;
+        FirstNonNewLineCharIndex++;
+    }
 
 }
