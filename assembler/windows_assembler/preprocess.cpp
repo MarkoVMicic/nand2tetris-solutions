@@ -310,7 +310,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 NewAsmString->Contents[NewIndex] = 
                     OldAsmString->Contents[OldIndex];
                 NewIndex++;
-                *LineCount++;  
+                (*LineCount)++;  
             } break;
 
             case A_INSTRUCTION_SYMBOL:
@@ -428,7 +428,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                                            &LabelSymbol,
                                            *LineCount);
                 CurrentLabelIndex++;
-                *LineCount--;
+                (*LineCount)--;
 
 
             }
