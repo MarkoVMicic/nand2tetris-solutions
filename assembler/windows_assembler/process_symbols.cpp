@@ -163,13 +163,22 @@ internal variable_table CreateLabelTable(uint32 Size)
 
 internal void FreeVariableTable(variable_table *VariableTable)
 {
-    // NOTE(Marko): First free the strings, and the asm_strings that they're 
-    //              inside
+    // NOTE(Marko): I can't actually free the asm_string structs at the same 
+    //              time as freeing the associated strings, or I lose the 
+    //              ability to iterate through the asm_string structs! 
+
+    // NOTE(Marko): First free the strings
     for(uint32 i = 0; i < VariableTable->Size; i++)
     {
         VirtualFree(VariableTable->VariableNames[i].Contents, 0, MEM_RELEASE);
+    }
+
+    // NOTE(Marko): Then free the strings.
+    for(uint32 i = 0; i < VariableTable->Size; i++)
+    {
         VirtualFree(&VariableTable->VariableNames[i], 0, MEM_RELEASE);
     }
+
 
     // NOTE(Marko): Then release the array of pointers to strings and the 
     //              array of uint16s
