@@ -117,6 +117,10 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                         OldAsmString->Contents[OldIndex];
                     NewIndex++;
                 }
+                else
+                {
+                    // TODO(Marko): Error handling -- we have a floating slash
+                }
             } break;
 
             case A_INSTRUCTION_SYMBOL:
@@ -441,6 +445,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
             }
         }
     }
+
     // NOTE(Marko): Again we reduce the length of both strings by the number 
     //              of characters that were removed. 
     OldAsmString->Length -= RemovedCharsCount;
