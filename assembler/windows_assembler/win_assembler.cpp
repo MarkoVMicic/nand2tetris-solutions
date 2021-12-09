@@ -186,6 +186,15 @@ int main(int argc, char **argv)
                             &UserDefinedVariableTable,
                             &LineCount);
 
+
+
+        // NOTE(Marko): Allocate the Machine Code string. Note that we don't 
+        //              need to add an extra byte to the allocation for null 
+        //              termination because DEBUGWriteEntireFile() takes in a 
+        //              length and writes memory (i.e. it takes a void *)
+        asm_string MachineCodeAsmString = 
+            InitializeAsmString(LineCount * MACHINE_CODE_LINE_LENGTH);
+
         DEBUGWriteEntireFile(OutputFilePath, 
                              AsmString.Length, 
                              (void *)AsmString.Contents);
