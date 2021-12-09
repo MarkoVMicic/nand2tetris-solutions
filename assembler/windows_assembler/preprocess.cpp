@@ -70,12 +70,35 @@ asm_string UInt16ToAsmString(uint16 UInt16)
 }
 
 
-internal void PreprocessAsmString(asm_string *OldAsmString, 
-                                  asm_string *NewAsmString,
+internal void PreprocessAsmString(asm_string *ReadAsmString, 
                                   variable_table *PredefinedVariableTable,
                                   variable_table *UserDefinedVariableTable,
                                   uint32 *LineCount)
 {
+    // NOTE(Marko): Here, we create a block of memory of identical 
+    //              size to ReadAsmString: one for AsmString and one for 
+    //              NewAsmString. 
+    //              For each pass through the string of assembly 
+    //              instructions, we will selectively copy over characters 
+    //              from ReadAsmString to WriteAsmString. At the end of each 
+    //              pass, we will swap them (i.e. WriteAsmString becomes 
+    //              ReadAsmString, and vice versa). In this way, we can 
+    //              easily manage the editing of the strings without 
+    //              having to worry about multiple allocations and frees. 
+    //              Indeed the only thing we need to allocate on the heap 
+    //              are two strings, of equal size. Since we remove all 
+    //              the comments and whitespace, it's unlikely that we 
+    //              will ever need more space. And since asm_string keeps 
+    //              track of length, it's easy to find out when we've come 
+    //              to the end of any of those strings.
+    //              Consider that the WriteAsmString is always just a block 
+    //              of memory to write into, and the ReadAsmString is the 
+    //              block of memory that we read from. 
+    // NOTE(Marko): I'm grabbing a pointer here to keep things syntatically 
+    //              symmetric with the ReadAsmString (which is also a pointer)
+    asm_string *WriteAsmString = &InitializeAsmString(ReadAsmString->Length);
+
+
     // TODO(Marko): Considering scoping each pass. 
  
     //
@@ -86,7 +109,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     uint32 RemovedCharsCount = 0;
     uint32 UserDefinedVariableCount = 0;
     uint32 LabelCount = 0;
-    for(uint32 OldIndex = 0; OldIndex < OldAsmString->Length; OldIndex++)
+    for(uint32 OldIndex = 0; OldIndex < ReadAsmString->Length; OldIndex++)
     {
         // TODO(Marko): pull out the copying of the character into an inline 
         //              function? This would avoid code copy-pasta
@@ -95,26 +118,26 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
         //              gets passed into here, and written to, and returned? 
         //              Also need to keep track of line count to provide 
         //              context for those errors. 
-        switch(OldAsmString->Contents[OldIndex])
+        switch(ReadAsmString->Contents[OldIndex])
         {
             // NOTE(Marko): Ignore everything until end of line if there is 
             //              indeed a comment
             case COMMENT_SLASH:
             {
-                if((OldIndex < OldAsmString->Length - 1) &&
-                   (OldAsmString->Contents[OldIndex + 1] == COMMENT_SLASH))
+                if((OldIndex < ReadAsmString->Length - 1) &&
+                   (ReadAsmString->Contents[OldIndex + 1] == COMMENT_SLASH))
                 {
-                    while(OldAsmString->Contents[OldIndex] != NEWLINE)
+                    while(ReadAsmString->Contents[OldIndex] != NEWLINE)
                     {
                         OldIndex++;
                         RemovedCharsCount++;
                     }
                     // NOTE(Marko): Copy the newline char into the 
-                    //              NewAsmString (take note that they are 
+                    //              WriteAsmString (take note that they are 
                     //              using different indices so we need to 
                     //              manually increment NewIndex)
-                    NewAsmString->Contents[NewIndex] = 
-                        OldAsmString->Contents[OldIndex];
+                    WriteAsmString->Contents[NewIndex] = 
+                        ReadAsmString->Contents[OldIndex];
                     NewIndex++;
                 }
                 else
@@ -135,13 +158,13 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 //              user-defined variables, which we will use to
                 //              allocate memory for a user-defined variable 
                 //              table later. 
-                if((OldIndex < OldAsmString->Length - 1) && 
-                   (!IsCharNumber(OldAsmString->Contents[OldIndex+1])))
+                if((OldIndex < ReadAsmString->Length - 1) && 
+                   (!IsCharNumber(ReadAsmString->Contents[OldIndex+1])))
                 {
                     asm_string AInstructionSymbol;
                     // NOTE(Marko): AInstructionSymbol.Contents now points to 
                     //              already-allocated memory. 
-                    AInstructionSymbol.Contents = &OldAsmString->Contents[OldIndex+1];
+                    AInstructionSymbol.Contents = &ReadAsmString->Contents[OldIndex+1];
                     AInstructionSymbol.Length = 0;
                     char *CurrentChar = AInstructionSymbol.Contents;
                     // NOTE(Marko): Go to the end of the word
@@ -163,8 +186,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 //              the new string (take note that they are using 
                 //              different indices so we need to manually 
                 //              increment NewIndex)
-                NewAsmString->Contents[NewIndex] = 
-                    OldAsmString->Contents[OldIndex];
+                WriteAsmString->Contents[NewIndex] = 
+                    ReadAsmString->Contents[OldIndex];
                 NewIndex++;
             } break;
 
@@ -192,8 +215,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
             // NOTE(Marko): Remove duplicate newlines
             case NEWLINE:
             {
-                if((OldIndex < OldAsmString->Length - 1) &&
-                   (OldAsmString->Contents[OldIndex+1] == NEWLINE))
+                if((OldIndex < ReadAsmString->Length - 1) &&
+                   (ReadAsmString->Contents[OldIndex+1] == NEWLINE))
                 {
                     RemovedCharsCount++;
                 }
@@ -204,8 +227,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                     //              they are using 
                     //              different indices so we need to manually 
                     //              increment NewIndex)
-                    NewAsmString->Contents[NewIndex] = 
-                        OldAsmString->Contents[OldIndex];
+                    WriteAsmString->Contents[NewIndex] = 
+                        ReadAsmString->Contents[OldIndex];
                     NewIndex++; 
                 }
             } break;
@@ -228,8 +251,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 //              they are using 
                 //              different indices so we need to manually 
                 //              increment NewIndex)
-                NewAsmString->Contents[NewIndex] = 
-                    OldAsmString->Contents[OldIndex];
+                WriteAsmString->Contents[NewIndex] = 
+                    ReadAsmString->Contents[OldIndex];
                 NewIndex++; 
 
                 LabelCount++;
@@ -241,18 +264,18 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 //              the new string (take note that they are using 
                 //              different indices so we need to manually 
                 //              increment NewIndex)
-                NewAsmString->Contents[NewIndex] = 
-                    OldAsmString->Contents[OldIndex];
+                WriteAsmString->Contents[NewIndex] = 
+                    ReadAsmString->Contents[OldIndex];
                 NewIndex++;
             }
         }
     }
 
     // NOTE(Marko): Adjust the length of both strings
-    NewAsmString->Length -= RemovedCharsCount;
-    OldAsmString->Length -= RemovedCharsCount;
+    WriteAsmString->Length -= RemovedCharsCount;
+    ReadAsmString->Length -= RemovedCharsCount;
 
-    DebugPrintAsmString(NewAsmString); 
+    DebugPrintAsmString(WriteAsmString); 
 
     OutputDebugString("User-defined Variable Count: ");
     DebugPrintUInt32(UserDefinedVariableCount);
@@ -273,7 +296,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
 
     // NOTE(Marko): Swap the AsmStrings so that we can continue selectively 
     //              copying from Old to New
-    SwapAsmStringPointers(OldAsmString, NewAsmString);
+    SwapAsmStringPointers(ReadAsmString, WriteAsmString);
 
     
     RemovedCharsCount = 0;
@@ -283,32 +306,32 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     uint32 CurrentLabelIndex = 0;
     
     // NOTE(Marko): This is where we basically remove all the leading newline 
-    //              chars -- we start the for loop through OldAsmString from 
+    //              chars -- we start the for loop through ReadAsmString from 
     //              the first non-newline char
     uint32 FirstNonNewLineCharIndex = 0;
-    while(OldAsmString->Contents[FirstNonNewLineCharIndex] == NEWLINE)
+    while(ReadAsmString->Contents[FirstNonNewLineCharIndex] == NEWLINE)
     {
         RemovedCharsCount++;
         FirstNonNewLineCharIndex++;
     }
 
     for(uint32 OldIndex = FirstNonNewLineCharIndex; 
-        OldIndex < OldAsmString->Length; 
+        OldIndex < ReadAsmString->Length; 
         OldIndex++)
     {
-        switch(OldAsmString->Contents[OldIndex])
+        switch(ReadAsmString->Contents[OldIndex])
         {
             case NEWLINE:
             {
                 // NOTE(Marko): Remove consecutive newlines
-                while((OldIndex < OldAsmString->Length-1) && 
-                      (OldAsmString->Contents[OldIndex+1] == NEWLINE))
+                while((OldIndex < ReadAsmString->Length-1) && 
+                      (ReadAsmString->Contents[OldIndex+1] == NEWLINE))
                 {
                     OldIndex++;
                     RemovedCharsCount++;
                 }
-                NewAsmString->Contents[NewIndex] = 
-                    OldAsmString->Contents[OldIndex];
+                WriteAsmString->Contents[NewIndex] = 
+                    ReadAsmString->Contents[OldIndex];
                 NewIndex++;
                 (*LineCount)++;  
             } break;
@@ -316,18 +339,18 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
             case A_INSTRUCTION_SYMBOL:
             {
                 // NOTE(Marko): First copy the @ over
-                NewAsmString->Contents[NewIndex] = 
-                    OldAsmString->Contents[OldIndex];
+                WriteAsmString->Contents[NewIndex] = 
+                    ReadAsmString->Contents[OldIndex];
                 NewIndex++;
                 // NOTE(Marko): Then check if the next symbol is a number
-                if((OldIndex <OldAsmString->Length - 1) &&
-                   (!IsCharNumber(OldAsmString->Contents[OldIndex+1]))) 
+                if((OldIndex <ReadAsmString->Length - 1) &&
+                   (!IsCharNumber(ReadAsmString->Contents[OldIndex+1]))) 
                 {
                     asm_string AInstructionSymbol;
                     // NOTE(Marko): AInstructionSymbol.Contents now points to 
                     //              already-allocated memory. No need to alloc 
                     //              or free
-                    AInstructionSymbol.Contents = &OldAsmString->Contents[OldIndex+1];
+                    AInstructionSymbol.Contents = &ReadAsmString->Contents[OldIndex+1];
                     AInstructionSymbol.Length = 0;
                     char *CurrentChar = AInstructionSymbol.Contents;
                     // NOTE(Marko): Go to the end of the word
@@ -343,12 +366,12 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                     {
                         // NOTE(Marko): Retrieve the matched entry, stringify 
                         //              the VariableAddress, and copy that 
-                        //              into NewAsmString, then increment 
-                        //              OldAsmString to NEWLINE and copy that 
-                        //              also into NewAsmString. After that, 
+                        //              into WriteAsmString, then increment 
+                        //              ReadAsmString to NEWLINE and copy that 
+                        //              also into WriteAsmString. After that, 
                         //              the for-loop will increment 
-                        //              OldAsmString to the newline, and 
-                        //              NewAsmString will be awaiting to copy 
+                        //              ReadAsmString to the newline, and 
+                        //              WriteAsmString will be awaiting to copy 
                         //              something into the slot just after its 
                         //              NEWLINE char.
                         uint16 VariableAddress = PredefinedVariableTable->VariableAddresses[FoundIndex];
@@ -357,13 +380,13 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
 
                         CopyString(StringedVariableAddress.Contents,
                                    StringedVariableAddress.Length,
-                                   NewAsmString->Contents + NewIndex,
-                                   NewAsmString->Length - RemovedCharsCount);
+                                   WriteAsmString->Contents + NewIndex,
+                                   WriteAsmString->Length - RemovedCharsCount);
 
                         RemovedCharsCount += StringedVariableAddress.Length;
                         NewIndex += StringedVariableAddress.Length;
 
-                        while(OldAsmString->Contents[OldIndex] != NEWLINE)
+                        while(ReadAsmString->Contents[OldIndex] != NEWLINE)
                         {
                             OldIndex++;
                         }
@@ -409,7 +432,7 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 // NOTE(Marko): LabelSymbol.Contents now points to 
                 //              already-allocated memory. No need to alloc or 
                 //              free. 
-                LabelSymbol.Contents = &OldAsmString->Contents[OldIndex+1];
+                LabelSymbol.Contents = &ReadAsmString->Contents[OldIndex+1];
                 LabelSymbol.Length = 0;
                 char *CurrentChar = LabelSymbol.Contents;
                 while(*CurrentChar != CLOSED_BRACKET)
@@ -439,8 +462,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 //              the new string (take note that they are using 
                 //              different indices so we need to manually 
                 //              increment NewIndex)
-                NewAsmString->Contents[NewIndex] = 
-                    OldAsmString->Contents[OldIndex];
+                WriteAsmString->Contents[NewIndex] = 
+                    ReadAsmString->Contents[OldIndex];
                 NewIndex++;               
             }
         }
@@ -448,12 +471,12 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
 
     // NOTE(Marko): Again we reduce the length of both strings by the number 
     //              of characters that were removed. 
-    OldAsmString->Length -= RemovedCharsCount;
-    NewAsmString->Length -= RemovedCharsCount;
-    DebugPrintAsmString(NewAsmString);
+    ReadAsmString->Length -= RemovedCharsCount;
+    WriteAsmString->Length -= RemovedCharsCount;
+    DebugPrintAsmString(WriteAsmString);
     // NOTE(Marko): Swap the pointers back again now that the second pass is 
     //              done. 
-    SwapAsmStringPointers(OldAsmString, NewAsmString);
+    SwapAsmStringPointers(ReadAsmString, WriteAsmString);
 
 
     // TODO(Marko): Iterate through the Label Table to fill in the addresses 
@@ -487,4 +510,8 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
     }
 
     FreeVariableTable(&LabelTable);
+
+    // NOTE(Marko): IMPORTANT: Make sure you free the correct memory! This 
+    //                         depends on how many times you swapped pointers. 
+    FreeAsmString(WriteAsmString);
 }

@@ -183,6 +183,29 @@ inline bool32 AsmStringsMatch(asm_string *StringA, asm_string *StringB)
 }
 
 
+internal asm_string InitializeAsmString(uint32 Length)
+{
+    asm_string Result = {0};
+    Result.Contents = (char *)VirtualAlloc(0, 
+                                           Length*sizeof(char), 
+                                           MEM_COMMIT | MEM_RESERVE, 
+                                           PAGE_READWRITE);           
+    if(Result.Contents)
+    {
+        Result.Length = Length;
+    }
+
+    return(Result);
+}
+
+
+internal void FreeAsmString(asm_string *AsmString)
+{
+    VirtualFree(AsmString->Contents, 0, MEM_RELEASE);
+    VirtualFree(AsmString, 0, MEM_RELEASE);
+}
+
+
 
 #define WIN_ASSEMBLER_H
 #endif
