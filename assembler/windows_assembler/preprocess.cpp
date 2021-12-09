@@ -14,6 +14,41 @@ inline void SwapAsmStringPointers(asm_string *A, asm_string *B)
 }
 
 
+// NOTE(Marko): I think the compiler will make this fast? It's the simplest 
+//              thing I can think of xD. Since it's a uint16 it can't get 
+//              bigger than 2^16-1 = 65535 which is 5 digits. 
+uint32 NumberOfDigits(uint16 Number)
+{
+    Assert(Number >= 0);
+    uint32 Result = 0;
+
+    if (Number < 10) 
+    {
+        Result = 1;
+        return(Result);
+    }
+    if (Number < 100) 
+    {
+        Result = 2;
+        return(Result);
+    }
+    if (Number < 1000) 
+    {
+        Result = 3;
+        return(Result);
+    }
+    if (Number < 10000) 
+    {
+        Result = 4;
+        return(Result);
+    }
+    if (Number < 100000) 
+    {
+        Result = 5;
+        return(Result);
+    }
+    return(Result);
+}
 internal void PreprocessAsmString(asm_string *OldAsmString, 
                                   asm_string *NewAsmString,
                                   variable_table *PredefinedVariableTable,
