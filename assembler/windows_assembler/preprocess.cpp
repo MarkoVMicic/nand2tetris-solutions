@@ -49,12 +49,33 @@ uint32 NumberOfDigits(uint16 Number)
     }
     return(Result);
 }
+
+
+// TODO(Marko): Probably need a FreeAsmString(); function to free these 
+//              temporary strings.
+asm_string UInt16ToAsmString(uint16 UInt16)
+{
+    asm_string Result;
+    uint32 DigitCount = NumberOfDigits(UInt16);
+
+    Result.Length = DigitCount;
+    Result.Contents = (char *)VirtualAlloc(0, 
+                                           (DigitCount+1)*sizeof(char), 
+                                           MEM_RESERVE | MEM_COMMIT, 
+                                           PAGE_READWRITE);
+
+    _snprintf_s(Result.Contents, Result.Length+1, Result.Length, "%u", UInt16);
+
+    return(Result);
+}
+
+
 internal void PreprocessAsmString(asm_string *OldAsmString, 
                                   asm_string *NewAsmString,
                                   variable_table *PredefinedVariableTable,
                                   variable_table *UserDefinedVariableTable)
 {
-
+    // TODO(Marko): Considering scoping each pass. 
     //
     // NOTE(Marko): First pass    
     //
