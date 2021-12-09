@@ -441,6 +441,14 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
             }
         }
     }
+    // NOTE(Marko): Again we reduce the length of both strings by the number 
+    //              of characters that were removed. 
+    OldAsmString->Length -= RemovedCharsCount;
+    NewAsmString->Length -= RemovedCharsCount;
+    DebugPrintAsmString(NewAsmString);
+    // NOTE(Marko): Swap the pointers back again now that the second pass is 
+    //              done. 
+    SwapAsmStringPointers(OldAsmString, NewAsmString);
         }
     }
 }
