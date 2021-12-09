@@ -93,7 +93,7 @@ internal void CopyString(char *SourceString,
 {
     Assert(DestStringLength >= SourceStringLength);
     
-    for(uint32 i = 0; i < DestStringLength; i++)
+    for(uint32 i = 0; i < SourceStringLength; i++)
     {
         DestString[i] = SourceString[i];
     }
