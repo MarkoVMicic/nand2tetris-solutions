@@ -5,6 +5,7 @@
 // NOTE(Marko): Doing a unity build. 
 #include "process_symbols.cpp"
 #include "preprocess.cpp"
+#include "parse_instructions.cpp"
 
 
 // 
@@ -195,12 +196,22 @@ int main(int argc, char **argv)
         asm_string MachineCodeAsmString = 
             InitializeAsmString(LineCount * MACHINE_CODE_LINE_LENGTH);
 
+        ParseInstructions(&AsmString, 
+                          &MachineCodeAsmString, 
+                          &UserDefinedVariableTable);
+
         DEBUGWriteEntireFile(OutputFilePath, 
                              AsmString.Length, 
                              (void *)AsmString.Contents);
 
         // NOTE(Marko): Memory Cleanup
         DEBUGFreeFileMemory(InputFileReadResult.Contents);
+        // NOTE(Marko): Although we don't need the PredefinedVariableTable 
+        //              after the second pass (which happens in PreProcess()), 
+        //              we wait until the end of the program to free it 
+        //              because freeing it requires quite a lot of calls to 
+        //              VirtualFree() which might be slow. Of course, this is 
+        //              wishy washy coz I haven't actually profiled it. 
         FreeVariableTable(&PredefinedVariableTable);
         FreeVariableTable(&UserDefinedVariableTable);
     }
