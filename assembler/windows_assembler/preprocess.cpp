@@ -464,4 +464,22 @@ internal void PreprocessAsmString(asm_string *OldAsmString,
                 LabelTable.VariableAddresses[LabelIndex];
         }
     }
+
+    // TODO(Marko): Iterate through the Variable Table to fill in all 
+    //              remaining uninitialized variable addresses. 
+    uint16 CurrentUserDefinedAddress = USER_DEFINED_VAR_ADDRESS_START;
+    for(uint32 UserDefinedIndex = 0; 
+        UserDefinedIndex < UserDefinedVariableTable->Size; 
+        UserDefinedIndex++)
+    {
+        if(UserDefinedVariableTable->VariableAddresses[UserDefinedIndex] == 
+            UNINITIALIZED_ADDRESS)
+        {
+            UserDefinedVariableTable->VariableAddresses[UserDefinedIndex] = 
+                CurrentUserDefinedAddress;
+            CurrentUserDefinedAddress++;
+        }
+    }
+
+    FreeVariableTable(&LabelTable);
 }
