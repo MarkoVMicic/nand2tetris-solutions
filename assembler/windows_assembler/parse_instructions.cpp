@@ -168,6 +168,17 @@ internal void ParseInstructions(asm_string *ReadAsmString,
         ZeroCharInitializeAsmString(&MachineCodeLine);
         switch(ReadAsmString->Contents[ReadAsmIndex])
         {
+            case OPEN_BRACKET:
+            {
+                // NOTE(Marko): This is a label which we have already used, so 
+                //              just ignore this line. 
+                while(ReadAsmString->Contents[ReadAsmIndex] != NEWLINE)
+                {
+                    ReadAsmIndex++;
+                }
+
+            } break;
+
         }
     }
 }
