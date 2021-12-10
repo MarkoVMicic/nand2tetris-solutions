@@ -250,6 +250,66 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 }
             } break;
 
+            default:
+            {
+                // NOTE(Marko): Parsing C-instruction here -- set left-most 
+                //              bit to 1. 
+                asm_string CInstructionSymbol;
+                CInstructionSymbol.Contents = 
+                    &ReadAsmString->Contents[ReadAsmIndex+1];
+                CInstructionSymbol.Length = 0;
+                char *CurrentChar = CInstructionSymbol.Contents;
+                while(*CurrentChar != NEWLINE)
+                {
+                    CurrentChar++;
+                    CInstructionSymbol.Length++;
+                }
+                // NOTE(Marko): Dest portion of C-instruction. Starts at 
+                //              beginning of line and ends at equals sign. If 
+                //              there is no equals sign, then its null and we 
+                //              simply write "000" for that portion of the 
+                //              MachineCodeLine
+                asm_string DestBinaryAsmString;
+                char DestBinaryAsmStringContents[DEST_BINARY_PORTION_LENGTH];
+                DestBinaryAsmString.Contents = DestBinaryAsmStringContents;
+                DestBinaryAsmString.Length = DEST_BINARY_PORTION_LENGTH;
+                ZeroCharInitializeAsmString(&DestBinaryAsmString); 
+                uint32 EqualsSignIndex = 0;
+                if(WhereInAsmString(&CInstructionSymbol, 
+                                    EQUALS_SIGN, 
+                                    &EqualsSignIndex))
+                {
+                    // NOTE(Marko): Seek from beginning of C-instruction to 
+                    //              Equals sign
+                    asm_string DestSymbol;
+                    DestSymbol.Contents = CInstructionSymbol.Contents;
+                    // NOTE(Marko): Instead of just scanning through the 
+                    //              CInstruction Symbol again, we just use the 
+                    //              position of the EqualsSign (i.e. 
+                    //              EqualsSignIndex)
+                    DestSymbol.Length = EqualsSignIndex;
+                    uint32 DestTableFoundIndex = 0;
+                    if(WhereInDestTable(&DestTable, 
+                                        &DestSymbol, 
+                                        &DestTableFoundIndex))
+                    {
+                        CopyAsmString(&DestTable.MachineCodeTranslations[DestTableFoundIndex], &DestBinaryAsmString);
+                    }
+                    else
+                    {
+                        // NOTE(Marko): The DestSymbol wasn't found in the 
+                        //              DestTable. 
+                        InvalidCodePath;
+                    }
+                }
+                else
+                {
+                    // NOTE(Marko): We already zero-char-initialized the 
+                    //              DestBinaryAsmString so we don't need to do 
+                    //              anything here, since a null DEST 
+                    //              corresponds to "000"
+                }
+            }
         }
     }
 }
