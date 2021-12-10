@@ -209,6 +209,15 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                     CopyLocation.Length = MachineCodeAsmString->Length - MachineCodeIndex;
                     CopyAsmString(&MachineCodeLine, &CopyLocation);
                     MachineCodeIndex += MachineCodeLine.Length;
+                    
+                    // NOTE(Marko) Incrementing by the length of
+                    //             DecimalAddressString will push ReadAsmIndex 
+                    //             to the char just before the newline. 
+                    //             Incrementing it by one more will push it to 
+                    //             the newline, after which the for loop will 
+                    //             increment it one more time to point at the 
+                    //             first char of the next line. 
+                    ReadAsmIndex += DecimalAddressString.Length+1;
                 }
                 else
                 {
@@ -240,6 +249,15 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                         CopyLocation.Length = MachineCodeAsmString->Length - MachineCodeIndex;
                         CopyAsmString(&MachineCodeLine, &CopyLocation);
                         MachineCodeIndex += MachineCodeLine.Length;
+                    
+                    // NOTE(Marko) Incrementing by the length of
+                    //             DecimalAddressString will push ReadAsmIndex 
+                    //             to the char just before the newline. 
+                    //             Incrementing it by one more will push it to 
+                    //             the newline, after which the for loop will 
+                    //             increment it one more time to point at the 
+                    //             first char of the next line. 
+                        ReadAsmIndex += VariableSymbol.Length+1;
                     }
                     else
                     {
