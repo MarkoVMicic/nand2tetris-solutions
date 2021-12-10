@@ -112,6 +112,22 @@ internal void UInt32ToAInstructionString(uint32 Number,
 
 
 
+internal void ZeroCharInitializeString(char *String, 
+                                       uint32 StringLength)
+{
+    for(uint32 StringIndex = 0; StringIndex < StringLength; StringIndex++)
+    {
+        String[StringIndex] = '0';
+    }
+}
+
+
+internal void ZeroCharInitializeAsmString(asm_string *AsmString)
+{
+    ZeroCharInitializeString(AsmString->Contents, AsmString->Length);
+}
+
+
                                 asm_string *MachineCodeAsmString,
                                 variable_table *UserDefinedVariableTable)
 {
