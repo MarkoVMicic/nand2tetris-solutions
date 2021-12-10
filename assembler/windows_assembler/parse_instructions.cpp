@@ -65,6 +65,53 @@ internal uint32 AsmStringToUInt32(asm_string *NumericAsmString)
 }
 
 
+internal void UInt32ToAInstructionString(uint32 Number,
+                                         char *BinaryStringBuffer, 
+                                         uint32 BinaryStringLength)
+{
+    // TODO(Marko): Asserts to check that the number is small enough! 
+    uint32 CharsRemaining = BinaryStringLength;
+    // NOTE(Marko): For A-instructions, set the msb to 0. 
+    BinaryStringBuffer[0] ='0';
+    CharsRemaining--;
+
+    // NOTE(Marko): Final char in the line is always newline.
+    BinaryStringBuffer[BinaryStringLength-1] = NEWLINE;
+    CharsRemaining--;
+
+    // NOTE(Marko): Shortcut for 0
+    if(Number == 0)
+    {
+        for(uint32 BinaryStringIndex = 1; 
+            BinaryStringIndex < CharsRemaining; BinaryStringIndex++)
+        {
+            BinaryStringBuffer[BinaryStringIndex] = '0';
+        }
+    }
+    else
+    {
+        // NOTE(Marko) Insert the bits from left to right by using mod. 
+        uint32 BinaryStringIndex = BinaryStringLength-2;
+        while(Number > 0)
+        {
+            BinaryStringBuffer[BinaryStringIndex] = (char)((Number%2) + '0');
+            Number = Number/2;
+            BinaryStringIndex--;
+        }
+    }
+}
+
+
+internal void UInt32ToAInstructionString(uint32 Number,
+                                         asm_string *BinaryAsmString)
+{
+    UInt32ToAInstructionString(Number, 
+                               BinaryAsmString->Contents, 
+                               BinaryAsmString->Length);
+}
+
+
+
                                 asm_string *MachineCodeAsmString,
                                 variable_table *UserDefinedVariableTable)
 {
