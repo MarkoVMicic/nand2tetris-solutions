@@ -8,6 +8,13 @@
 // NOTE(Marko): JUMP_INSTRUCTION_COUNT also does not include null instruction.
 #define JUMP_INSTRUCTION_COUNT 7
 
+#define DEST_BINARY_PORTION_LENGTH 3
+#define COMP_BINARY_PORTION_LENGTH 7
+#define JUMP_BINARY_PORTION_LENGTH 3
+
+#define EQUALS_SIGN '='
+#define SEMICOLON ';'
+
 struct dest_instruction_table
 {
     asm_string Tokens[DEST_INSTRUCTION_COUNT];
@@ -19,12 +26,14 @@ struct comp_instruction_table
 {
     asm_string Tokens[COMP_INSTRUCTION_COUNT];
     asm_string MachineCodeTranslations[COMP_INSTRUCTION_COUNT];
+    uint32 Size;
 };
 
 struct jump_instruction_table
 {
     asm_string Tokens[JUMP_INSTRUCTION_COUNT];
     asm_string MachineCodeTranslations[JUMP_INSTRUCTION_COUNT];
+    uint32 Size;
 };
 
 
@@ -285,16 +294,22 @@ internal jump_instruction_table CreateJumpTable(void)
 
     Result.MachineCodeTranslations[0].Contents = "001";
     Result.MachineCodeTranslations[0].Length = 3;
+
     Result.MachineCodeTranslations[1].Contents = "010";
     Result.MachineCodeTranslations[1].Length = 3;
+
     Result.MachineCodeTranslations[2].Contents = "011";
     Result.MachineCodeTranslations[2].Length = 3;
+
     Result.MachineCodeTranslations[3].Contents = "100";
     Result.MachineCodeTranslations[3].Length = 3;
+
     Result.MachineCodeTranslations[4].Contents = "101";
     Result.MachineCodeTranslations[4].Length = 3;
+
     Result.MachineCodeTranslations[5].Contents = "110";
     Result.MachineCodeTranslations[5].Length = 3;
+
     Result.MachineCodeTranslations[6].Contents = "111";
     Result.MachineCodeTranslations[6].Length = 3;
 
@@ -365,8 +380,69 @@ internal dest_instruction_table CreateDestTable(void)
     Result.MachineCodeTranslations[6].Length = 3;
 
     return(Result);
-
 }
+
+// TODO(Marko): We can probably make a macro based on the table type? 
+internal bool32 WhereInDestTable(dest_instruction_table *DestTable, 
+                                 asm_string *AsmString, 
+                                 uint32 *FoundIndex)
+{
+    bool32 Result = false;
+
+    for(uint32 i = 0; i < DestTable->Size; i++)
+    {
+        if(AsmStringsMatch(&DestTable->Tokens[i], AsmString))
+        {
+            Result = true;
+            *FoundIndex = i;
+            break;
+        }
+    }
+
+    return(Result);
+}
+
+
+internal bool32 WhereInCompTable(comp_instruction_table *CompTable, 
+                                 asm_string *AsmString, 
+                                 uint32 *FoundIndex)
+{
+    bool32 Result = false;
+
+    for(uint32 i = 0; i < CompTable->Size; i++)
+    {
+        if(AsmStringsMatch(&CompTable->Tokens[i], AsmString))
+        {
+            Result = true;
+            *FoundIndex = i;
+            break;
+        }
+    }
+
+    return(Result);
+}
+
+
+
+internal bool32 WhereInJumpTable(jump_instruction_table *JumpTable, 
+                                 asm_string *AsmString, 
+                                 uint32 *FoundIndex)
+{
+    bool32 Result = false;
+
+    for(uint32 i = 0; i < JumpTable->Size; i++)
+    {
+        if(AsmStringsMatch(&JumpTable->Tokens[i], AsmString))
+        {
+            Result = true;
+            *FoundIndex = i;
+            break;
+        }
+    }
+
+    return(Result);
+}
+
 
 #define PARSE_INSTRUCTIONS_H
 #endif
