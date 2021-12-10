@@ -128,6 +128,24 @@ internal void ZeroCharInitializeAsmString(asm_string *AsmString)
 }
 
 
+internal bool32 WhereInAsmString(asm_string *AsmString, 
+                                 char Char, 
+                                 uint32 *FoundIndex)
+{
+    bool32 Result = false;
+    for(uint32 i = 0; i < AsmString->Length; i++)
+    {
+        if(AsmString->Contents[i] == Char)
+        {
+            Result = true;
+            *FoundIndex = i;
+            break;
+        }
+    }
+    return(Result);
+}
+
+
                                 asm_string *MachineCodeAsmString,
                                 variable_table *UserDefinedVariableTable)
 {
