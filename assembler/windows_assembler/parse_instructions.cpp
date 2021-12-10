@@ -50,6 +50,21 @@ inline uint32 Pow(uint32 Base, uint32 Exponent)
 
 
 
+internal uint32 AsmStringToUInt32(asm_string *NumericAsmString)
+{
+    uint32 Result = 0;
+    for(uint32 i = 0; i < NumericAsmString->Length; i++)
+    {
+        Assert(IsCharNumber(NumericAsmString->Contents[i]));
+        Result += (uint32)(NumericAsmString->Contents[i] - '0') * 
+                          Pow(10, i);
+    }
+
+    return(Result);
+
+}
+
+
                                 asm_string *MachineCodeAsmString,
                                 variable_table *UserDefinedVariableTable)
 {
