@@ -1,6 +1,5 @@
 #include "parse_instructions.h"
 
-internal void ParseInstructions(asm_string *PreprocessedAsmString,
 // TODO(Marko): Can make this a lot better using square and multiply algorithm 
 //              on the bits than this multiply but it's probably not that 
 //              important
@@ -146,6 +145,7 @@ internal bool32 WhereInAsmString(asm_string *AsmString,
 }
 
 
+internal void ParseInstructions(asm_string *ReadAsmString,
                                 asm_string *MachineCodeAsmString,
                                 variable_table *UserDefinedVariableTable)
 {
@@ -153,5 +153,21 @@ internal bool32 WhereInAsmString(asm_string *AsmString,
     comp_instruction_table CompTable = CreateCompTable();
     jump_instruction_table JumpTable = CreateJumpTable();
 
-    int x = 5;
+    uint32 MachineCodeIndex = 0;
+
+    for(uint32 ReadAsmIndex = 0; 
+        ReadAsmIndex < ReadAsmString->Length; 
+        ReadAsmIndex++)
+    {
+        // NOTE(Marko): This might seem a bit verbose but putting things into 
+        //              the asm_string struct makes life simpler
+        asm_string MachineCodeLine;
+        char MachineCodeLineContents[MACHINE_CODE_LINE_LENGTH];
+        MachineCodeLine.Contents = MachineCodeLineContents;
+        MachineCodeLine.Length = MACHINE_CODE_LINE_LENGTH;
+        ZeroCharInitializeAsmString(&MachineCodeLine);
+        switch(ReadAsmString->Contents[ReadAsmIndex])
+        {
+        }
+    }
 }
