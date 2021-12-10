@@ -386,6 +386,44 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                     InvalidCodePath;
                 }
 
+                // NOTE(Marko): Jump portion of C-instruction. Starts at the 
+                //              beginning of the semicolon (if there is one) 
+                //              and ends at the newline. If there is no 
+                //              semicolon, then it's a null instruction. 
+                asm_string JumpBinaryAsmString;
+                char JumpBinaryAsmStringContents[JUMP_BINARY_PORTION_LENGTH];
+                JumpBinaryAsmString.Contents = JumpBinaryAsmStringContents;
+                JumpBinaryAsmString.Length = JUMP_BINARY_PORTION_LENGTH;
+                ZeroCharInitializeAsmString(&JumpBinaryAsmString);
+                // NOTE(Marko): We don't have to process this if there is no 
+                //              semicolon, just stick with the "null" string 
+                //              (i.e. "000")
+                if(SemiColonIndex != 0)
+                {
+                    uint32 JumpBeginIndex = SemiColonIndex + 1;
+                    // NOTE(Marko): Don't need a JumpEndIndex since that's 
+                    //              just the end of the CInstructionSymbol
+                    asm_string JumpSymbol;
+                    JumpSymbol.Contents = &CInstructionSymbol.Contents[JumpBeginIndex];
+                    // NOTE(Marko): JumpSymbol should always have length 3! 
+                    //              (Look at the table in the header file to 
+                    //              see why)
+                    JumpSymbol.Length = CInstructionSymbol.Length - JumpBeginIndex;
+
+                    uint32 JumpTableFoundIndex = 0;
+                    if(WhereInJumpTable(&JumpTable, 
+                                        &JumpSymbol, 
+                                        &JumpTableFoundIndex))
+                    {
+                        CopyAsmString(&JumpTable.MachineCodeTranslations[JumpTableFoundIndex], &JumpBinaryAsmString);
+                    }
+                    else
+                    {
+                        // NOTE(Marko): Jump symbol not found in Jump Table.
+                        InvalidCodePath;
+                    }
+                }
+
             }
         }
     }
