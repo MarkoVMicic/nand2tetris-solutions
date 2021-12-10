@@ -179,6 +179,77 @@ internal void ParseInstructions(asm_string *ReadAsmString,
 
             } break;
 
+            case A_INSTRUCTION_SYMBOL:
+            {
+                if(IsCharNumber(ReadAsmString->Contents[ReadAsmIndex+1]))
+                {
+                    asm_string DecimalAddressString;
+                    DecimalAddressString.Contents = 
+                        &ReadAsmString->Contents[ReadAsmIndex+1];
+
+                    DecimalAddressString.Length = 0;
+                    uint32 CurrentCharIndex = 0;
+                    while(DecimalAddressString.Contents[CurrentCharIndex] != NEWLINE)
+                    {
+                        CurrentCharIndex++;
+                        DecimalAddressString.Length++;
+                    }
+                    // TODO(Marko): Can we skip turning the string into a 
+                    //              uint32 and go straight to outputting the 
+                    //              binary digits?
+                    // TODO(Marko): Should this be a uint16?
+                    uint32 DecimalAddress = 
+                        AsmStringToUInt32(&DecimalAddressString);
+
+                    UInt32ToAInstructionString(DecimalAddress, 
+                                               &MachineCodeLine);
+
+                    asm_string CopyLocation;
+                    CopyLocation.Contents = &MachineCodeAsmString->Contents[MachineCodeIndex];
+                    CopyLocation.Length = MachineCodeAsmString->Length - MachineCodeIndex;
+                    CopyAsmString(&MachineCodeLine, &CopyLocation);
+                    MachineCodeIndex += MachineCodeLine.Length;
+                }
+                else
+                {
+                    // NOTE(Marko) Use UserDefinedVariableTable to lookup the 
+                    //             address and write the binary (stringed) 
+                    //             version into MachineCodeLine[].
+                    asm_string VariableSymbol;
+                    VariableSymbol.Contents = 
+                        &ReadAsmString->Contents[ReadAsmIndex+1];
+                    VariableSymbol.Length = 0;
+                    char *CurrentChar = VariableSymbol.Contents;
+                    while(*CurrentChar != NEWLINE)
+                    {
+                        CurrentChar++;
+                        VariableSymbol.Length++;
+                    }
+
+                    uint32 FoundIndex = 0;
+                    if(WhereInVariableTable(UserDefinedVariableTable,
+                                            &VariableSymbol,
+                                            &FoundIndex))
+                    {
+                        uint32 DecimalAddress = UserDefinedVariableTable->VariableAddresses[FoundIndex];
+                        UInt32ToAInstructionString(DecimalAddress, 
+                                               &MachineCodeLine);
+
+                        asm_string CopyLocation;
+                        CopyLocation.Contents = &MachineCodeAsmString->Contents[MachineCodeIndex];
+                        CopyLocation.Length = MachineCodeAsmString->Length - MachineCodeIndex;
+                        CopyAsmString(&MachineCodeLine, &CopyLocation);
+                        MachineCodeIndex += MachineCodeLine.Length;
+                    }
+                    else
+                    {
+                        // NOTE(Marko): Variable symbol wasn't found in the 
+                        //              UserDefinedVariableTable.
+                        InvalidCodePath;
+                    }
+                }
+            } break;
+
         }
     }
 }
