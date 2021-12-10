@@ -293,6 +293,13 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 DestBinaryAsmString.Length = DEST_BINARY_PORTION_LENGTH;
                 ZeroCharInitializeAsmString(&DestBinaryAsmString); 
                 uint32 EqualsSignIndex = 0;
+                // NOTE(Marko): This if statement sets EqualsSignIndex. 
+                //              EqualsSignIndex cannot actually be 0, since a 
+                //              C-instruction cannot start with an equals 
+                //              sign. So if its 0, it means that there is no 
+                //              Equals Sign and there is no Dest portion. We 
+                //              need to remember this fact later when deciding 
+                //              where the Comp portion begins and ends. 
                 if(WhereInAsmString(&CInstructionSymbol, 
                                     EQUALS_SIGN, 
                                     &EqualsSignIndex))
@@ -327,6 +334,58 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                     //              anything here, since a null DEST 
                     //              corresponds to "000"
                 }
+
+                // NOTE(Marko): Comp portion of C-instruction. Starts at 
+                //              beginning of equals sign (if there is one) and 
+                //              ends at semicolon (if there is one). There is 
+                //              no legal C-instruction that doesn't have a 
+                //              Comp portion.
+                asm_string CompBinaryAsmString;
+                char CompBinaryAsmStringContents[COMP_BINARY_PORTION_LENGTH];
+                CompBinaryAsmString.Contents = CompBinaryAsmStringContents;
+                CompBinaryAsmString.Length = COMP_BINARY_PORTION_LENGTH;
+                // TODO(Marko): Evaluate if we actually want to spend the time doing this particular brand of zero initialization for the comp binary string, since there is no NULL string. 
+                ZeroCharInitializeAsmString(&CompBinaryAsmString);
+
+                uint32 CompBeginIndex = 0; 
+                if(EqualsSignIndex != 0)
+                {
+                    CompBeginIndex = EqualsSignIndex + 1;
+                }
+
+                uint32 CompEndIndex = 0;
+                uint32 SemiColonIndex = 0;
+                // NOTE(Marko): This if statement sets SemiColonIndex. 
+                //              SemiColonIndex cannot actually be 0 -- 
+                //              C-instruction cannot start with a semicolon 
+                if(WhereInAsmString(&CInstructionSymbol, 
+                                    SEMICOLON, 
+                                    &SemiColonIndex))
+                {
+                    CompEndIndex = SemiColonIndex - 1;
+                }
+                else
+                {
+                    CompEndIndex = CInstructionSymbol.Length - EqualsSignIndex;
+                }
+
+                asm_string CompSymbol;
+                CompSymbol.Contents = &CInstructionSymbol.Contents[CompBeginIndex];
+                CompSymbol.Length = CompEndIndex - CompBeginIndex + 1;
+
+                uint32 CompTableFoundIndex = 0;
+                if(WhereInCompTable(&CompTable, 
+                                    &CompSymbol, 
+                                    &CompTableFoundIndex))
+                {
+                    CopyAsmString(&CompTable.MachineCodeTranslations[CompTableFoundIndex], &CompBinaryAsmString);
+                } 
+                else
+                {
+                    // NOTE(Marko): Comp symbol not found in comp table. 
+                    InvalidCodePath;
+                }
+
             }
         }
     }
