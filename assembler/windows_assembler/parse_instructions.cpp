@@ -166,6 +166,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
         MachineCodeLine.Contents = MachineCodeLineContents;
         MachineCodeLine.Length = MACHINE_CODE_LINE_LENGTH;
         ZeroCharInitializeAsmString(&MachineCodeLine);
+
         switch(ReadAsmString->Contents[ReadAsmIndex])
         {
             case OPEN_BRACKET:
@@ -179,6 +180,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
 
             } break;
 
+            // TODO(Marko): Major cleanup required here! 
             case A_INSTRUCTION_SYMBOL:
             {
                 if(IsCharNumber(ReadAsmString->Contents[ReadAsmIndex+1]))
@@ -423,6 +425,35 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                         InvalidCodePath;
                     }
                 }
+
+                // TODO(Marko): We can get CompBinaryAsmString, 
+                //              DestBinaryAsmString, and JumpBinaryAsmString 
+                //              to point directly to MachineCodeLine[] and 
+                //              just write into it immediately instead of 
+                //              composing everything at the end here. (This 
+                //              will also allow us to not need to use //              CopyString and instead use CopyAsmString)
+                // NOTE(Marko): Assemble the MachineCodeLine using the 3 
+                //              binary strings. 
+                // NOTE(Marko): C-Instruction:
+                //         
+                //      Index       0 1 2 3 4  5  6  7  8  9  10 11 12 13 14 15
+                //      Data        1 1 1 a c1 c2 c3 c4 c5 c6 d1 d2 d3 j1 j2 j3
+                MachineCodeLine.Contents[0] = '1';
+                MachineCodeLine.Contents[1] = '1';
+                MachineCodeLine.Contents[2] = '1';
+
+                CopyString(CompBinaryAsmString.Contents, 
+                           CompBinaryAsmString.Length,
+                           &MachineCodeLine.Contents[3],
+                           MachineCodeLine.Length - 3);
+                CopyString(DestBinaryAsmString.Contents, 
+                           DestBinaryAsmString.Length,
+                           &MachineCodeLine.Contents[10],
+                           MachineCodeLine.Length - 10);
+                CopyString(JumpBinaryAsmString.Contents, 
+                           JumpBinaryAsmString.Length,
+                           &MachineCodeLine.Contents[13],
+                           MachineCodeLine.Length - 13);
 
                 ReadAsmIndex += CInstructionSymbol.Length;
 
