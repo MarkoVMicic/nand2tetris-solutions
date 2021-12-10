@@ -274,7 +274,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 //              bit to 1. 
                 asm_string CInstructionSymbol;
                 CInstructionSymbol.Contents = 
-                    &ReadAsmString->Contents[ReadAsmIndex+1];
+                    &ReadAsmString->Contents[ReadAsmIndex];
                 CInstructionSymbol.Length = 0;
                 char *CurrentChar = CInstructionSymbol.Contents;
                 while(*CurrentChar != NEWLINE)
