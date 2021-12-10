@@ -424,6 +424,8 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                     }
                 }
 
+                ReadAsmIndex += CInstructionSymbol.Length;
+
             }
         }
     }
