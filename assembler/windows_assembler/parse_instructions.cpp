@@ -167,12 +167,15 @@ internal void ParseInstructions(asm_string *ReadAsmString,
         MachineCodeLine.Length = MACHINE_CODE_LINE_LENGTH;
         ZeroCharInitializeAsmString(&MachineCodeLine);
 
+        bool32 ShouldCopy = true;
+
         switch(ReadAsmString->Contents[ReadAsmIndex])
         {
             case OPEN_BRACKET:
             {
                 // NOTE(Marko): This is a label which we have already used, so 
                 //              just ignore this line. 
+                ShouldCopy = false;
                 while(ReadAsmString->Contents[ReadAsmIndex] != NEWLINE)
                 {
                     ReadAsmIndex++;
@@ -205,12 +208,6 @@ internal void ParseInstructions(asm_string *ReadAsmString,
 
                     UInt32ToAInstructionString(DecimalAddress, 
                                                &MachineCodeLine);
-
-                    asm_string CopyLocation;
-                    CopyLocation.Contents = &MachineCodeAsmString->Contents[MachineCodeIndex];
-                    CopyLocation.Length = MachineCodeAsmString->Length - MachineCodeIndex;
-                    CopyAsmString(&MachineCodeLine, &CopyLocation);
-                    MachineCodeIndex += MachineCodeLine.Length;
                     
                     // NOTE(Marko) Incrementing by the length of
                     //             DecimalAddressString will push ReadAsmIndex 
@@ -245,12 +242,6 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                         uint32 DecimalAddress = UserDefinedVariableTable->VariableAddresses[FoundIndex];
                         UInt32ToAInstructionString(DecimalAddress, 
                                                &MachineCodeLine);
-
-                        asm_string CopyLocation;
-                        CopyLocation.Contents = &MachineCodeAsmString->Contents[MachineCodeIndex];
-                        CopyLocation.Length = MachineCodeAsmString->Length - MachineCodeIndex;
-                        CopyAsmString(&MachineCodeLine, &CopyLocation);
-                        MachineCodeIndex += MachineCodeLine.Length;
                     
                     // NOTE(Marko) Incrementing by the length of
                     //             DecimalAddressString will push ReadAsmIndex 
@@ -458,6 +449,20 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 ReadAsmIndex += CInstructionSymbol.Length;
 
             }
+        }
+
+        if(ShouldCopy)
+        {
+            // NOTE(Marko): Copy the MachineCodeLine into the 
+            //              MachineCodeAsmString.
+            // NOTE(Marko): Remember to end the line with a newline
+            MachineCodeLine.Contents[MACHINE_CODE_LINE_LENGTH-1] = '\n';
+            CopyString(MachineCodeLine.Contents,
+                       MachineCodeLine.Length,
+                       &MachineCodeAsmString->Contents[MachineCodeIndex],
+                       MachineCodeAsmString->Length - MachineCodeIndex);
+
+            MachineCodeIndex += MachineCodeLine.Length;
         }
     }
 }
