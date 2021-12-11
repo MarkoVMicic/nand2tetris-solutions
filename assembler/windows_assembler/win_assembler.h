@@ -24,7 +24,7 @@ typedef uint16_t uint16;
 typedef uint32_t uint32;
 typedef uint64_t uint64;
 
-#if WIN_ASSSEMBLER_DEBUG
+#if WIN_ASSEMBLER_DEBUG
     // NOTE: Assert macro -> Write to the NULL pointer if Expression is false. 
     //       This is platform independent. 
     // TODO: Complete Assertion Macro

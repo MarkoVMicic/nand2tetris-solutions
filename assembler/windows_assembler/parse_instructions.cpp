@@ -5,7 +5,7 @@
 //              important
 inline uint32 Pow(uint32 Base, uint32 Exponent)
 {
-    uint32 Result = 0;
+    uint32 Result = 1;
     if(Base == 0 && Exponent == 0)
     {
         // NOTE(Marko): This is undefined, we shouldn't be calling into this 
@@ -56,7 +56,7 @@ internal uint32 AsmStringToUInt32(asm_string *NumericAsmString)
     {
         Assert(IsCharNumber(NumericAsmString->Contents[i]));
         Result += (uint32)(NumericAsmString->Contents[i] - '0') * 
-                          Pow(10, i);
+                          Pow(10, (NumericAsmString->Length-1) - i);
     }
 
     return(Result);

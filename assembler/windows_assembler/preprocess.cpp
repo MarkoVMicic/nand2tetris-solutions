@@ -454,7 +454,7 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                 (*LineCount)--;
 
 
-            }
+            } break;
 
             default:
             {
