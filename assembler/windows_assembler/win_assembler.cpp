@@ -201,8 +201,8 @@ int main(int argc, char **argv)
                           &UserDefinedVariableTable);
 
         DEBUGWriteEntireFile(OutputFilePath, 
-                             AsmString.Length, 
-                             (void *)AsmString.Contents);
+                             MachineCodeAsmString.Length, 
+                             (void *)MachineCodeAsmString.Contents);
 
         // NOTE(Marko): Memory Cleanup
         DEBUGFreeFileMemory(InputFileReadResult.Contents);
