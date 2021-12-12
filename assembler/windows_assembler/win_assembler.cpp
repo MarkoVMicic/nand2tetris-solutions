@@ -178,10 +178,6 @@ int main(int argc, char **argv)
         uint32 LineCount = 0;
 
 
-#if 1
-        OutputDebugString("AsmString contents: \n");
-        OutputDebugString(AsmString.Contents);
-#endif
         PreprocessAsmString(&AsmString, 
                             &PredefinedVariableTable,
                             &UserDefinedVariableTable,

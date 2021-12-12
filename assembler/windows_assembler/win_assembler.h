@@ -123,6 +123,10 @@ internal void DebugPrintUInt32(uint32 UInt32)
 
 internal void DebugPrintAsmString(asm_string *AsmString)
 {
+    // NOTE(Marko): IMPORTANT WARNING: OutputDebugString has a limit of ~4KB, 
+    //                                 and will just silently not output 
+    //                                 everything if the string is too 
+    //                                 large.       
     OutputDebugString("Printing AsmString...\n");
     OutputDebugString("AsmString Length: ");
     DebugPrintUInt32(AsmString->Length);
@@ -139,6 +143,11 @@ internal void DebugPrintAsmString(asm_string *AsmString)
 
     OutputDebugString(NullTerminatedAsmString);
     OutputDebugString("\n");
+
+    printf("Printing AsmString...\n");
+    printf("AsmString Length: %d\n", AsmString->Length);
+    printf("%s\n",NullTerminatedAsmString);
+    printf("\n");
 
     VirtualFree(NullTerminatedAsmString, 0, MEM_RELEASE);
 }

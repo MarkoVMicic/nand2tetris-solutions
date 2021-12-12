@@ -154,6 +154,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
     jump_instruction_table JumpTable = CreateJumpTable();
 
     uint32 MachineCodeIndex = 0;
+    uint32 LineCount = 0;
 
     for(uint32 ReadAsmIndex = 0; 
         ReadAsmIndex < ReadAsmString->Length; 
@@ -359,7 +360,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 }
                 else
                 {
-                    CompEndIndex = CInstructionSymbol.Length - EqualsSignIndex;
+                    CompEndIndex = CInstructionSymbol.Length - 1;
                 }
 
                 asm_string CompSymbol;
@@ -447,7 +448,6 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                            MachineCodeLine.Length - 13);
 
                 ReadAsmIndex += CInstructionSymbol.Length;
-
             }
         }
 
@@ -463,6 +463,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                        MachineCodeAsmString->Length - MachineCodeIndex);
 
             MachineCodeIndex += MachineCodeLine.Length;
+            LineCount++;
         }
     }
 }
