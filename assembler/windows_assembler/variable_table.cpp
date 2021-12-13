@@ -140,11 +140,34 @@ internal void InitializeUserDefinedVariableTable(variable_table *VariableTable,
                                    VariableTable->Size*sizeof(asm_string),
                                    MEM_COMMIT | MEM_RESERVE, 
                                    PAGE_READWRITE);
-    VariableTable->VariableAddresses = 
-        (uint16 *)VirtualAlloc(0, 
-                               VariableTable->Size*sizeof(uint16), 
-                               MEM_COMMIT | MEM_RESERVE, 
-                               PAGE_READWRITE);
+    if(VariableTable->VariableNames)
+    {
+      VariableTable->VariableAddresses = 
+          (uint16 *)VirtualAlloc(0, 
+                                 VariableTable->Size*sizeof(uint16), 
+                                 MEM_COMMIT | MEM_RESERVE, 
+                                 PAGE_READWRITE);
+        if(VariableTable->VariableAddresses)
+        {
+            // NOTE(Marko): Everything succeeded, move on
+        }
+        else
+        {
+            // TODO(Marko): Proper error handling. 
+            // NOTE(Marko): VirtualAlloc failed. 
+            VariableTable->VariableNames = 0;
+            VariableTable->VariableAddresses = 0;
+            VariableTable->Size = 0;
+        }
+    }
+    else
+    {
+        // TODO(Marko): Proper error handling. 
+        // NOTE(Marko): VirtualAlloc failed. 
+        VariableTable->VariableNames = 0;
+        VariableTable->VariableAddresses = 0;
+        VariableTable->Size = 0;
+    }
 }
 
 
@@ -153,18 +176,40 @@ internal variable_table CreateLabelTable(uint32 Size)
     variable_table Result = {0};
     Result.Size = Size;
 
-    // TODO(Marko): Check that VirtualAlloc() succeeded before moving on! 
     Result.VariableNames =
         (asm_string *)VirtualAlloc(0,
                                    Result.Size*sizeof(asm_string),
                                    MEM_COMMIT | MEM_RESERVE,
                                    PAGE_READWRITE);
+    if(Result.VariableNames)
+    {
+        Result.VariableAddresses = 
+            (uint16 *)VirtualAlloc(0,
+                                   Result.Size*sizeof(uint16),
+                                   MEM_COMMIT | MEM_RESERVE,
+                                   PAGE_READWRITE);
+        if(Result.VariableAddresses)
+        {
+            // NOTE(Marko): Everything succeeded, move on.
+        }        
+        else
+        {
+            // TODO(Marko): Proper error handling
+            // NOTE(Marko): VirtualAlloc failed
+            Result.VariableNames = 0;
+            Result.VariableAddresses = 0;
+            Result.Size = 0;
+        }
+    }
+    else
+    {
+        // TODO(Marko): Proper error handling
+        // NOTE(Marko): VirtualAlloc failed
+        Result.VariableNames = 0;
+        Result.VariableAddresses = 0;
+        Result.Size = 0;
+    }
 
-    Result.VariableAddresses = 
-        (uint16 *)VirtualAlloc(0,
-                               Result.Size*sizeof(uint16),
-                               MEM_COMMIT | MEM_RESERVE,
-                               PAGE_READWRITE);
 
     return(Result);
 } 
