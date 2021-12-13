@@ -91,6 +91,9 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
     //
 
     uint32 WriteIndex = 0;
+    // NOTE(Marko): RemovedCharsCount keeps track of removed chars in the 
+    //              current pass. 
+    uint32 TotalRemovedCharsCount = 0;
     uint32 RemovedCharsCount = 0;
     uint32 UserDefinedVariableCount = 0;
     uint32 LabelCount = 0;
@@ -130,13 +133,16 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                 //              over. Thus we check for the case where it is 
                 //              NOT a number, in which case we need to check 
                 //              if it is in the predefined variable table. If 
-                //              it's not, then we increment the count of
-                //              user-defined variables, which we will use to
-                //              allocate memory for a user-defined variable 
-                //              table later. 
+                //              it is in the predefined variable table, we can 
+                //              immediately replace it with its numerical 
+                //              counterpart. If it's not, then we increment 
+                //              the count of user-defined variables, which we 
+                //              will use to allocate memory for a user-defined 
+                //              variable table later. 
                 if((ReadIndex < ReadAsmString->Length - 1) && 
                    (!IsCharNumber(ReadAsmString->Contents[ReadIndex+1])))
                 {
+                    
                     asm_string AInstructionSymbol;
                     // NOTE(Marko): AInstructionSymbol.Contents now points to 
                     //              already-allocated memory. 
@@ -152,14 +158,70 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                         AInstructionSymbol.Length++;
                         CurrentChar++;
                     }
-                    // TODO(Marko): Replace the predefined variables with 
-                    //              their addresses here instead of in the 
-                    //              second pass. 
-                    if(!IsInVariableTable(PredefinedVariableTable, 
-                                          &AInstructionSymbol))
+                    
+                    uint32 FoundIndex = 0; 
+                    if(WhereInVariableTable(PredefinedVariableTable, 
+                                            &AInstructionSymbol,
+                                            &FoundIndex))
+                    {
+                        // NOTE(Marko): First copy the @ over.
+                        WriteAsmString->Contents[WriteIndex] = 
+                            ReadAsmString->Contents[ReadIndex];
+                        WriteIndex++;
+                        // NOTE(Marko): Retrieve the matched entry, stringify 
+                        //              the VariableAddress, and copy that 
+                        //              into WriteAsmString, then increment 
+                        //              ReadAsmString to just before NEWLINE. 
+                        uint16 VariableAddress = PredefinedVariableTable->VariableAddresses[FoundIndex];
+                        asm_string StringedVariableAddress = 
+                            UInt16ToAsmString(VariableAddress);
+
+                        CopyString(StringedVariableAddress.Contents,
+                                   StringedVariableAddress.Length,
+                                   WriteAsmString->Contents + WriteIndex,
+                                   WriteAsmString->Length - RemovedCharsCount);
+
+                        // NOTE(Marko): We've removed the AInstruction Symbol 
+                        //              here and replaced it with a numerical 
+                        //              address.
+                        RemovedCharsCount += (AInstructionSymbol.Length - StringedVariableAddress.Length);
+                        WriteIndex += StringedVariableAddress.Length;
+
+                        // Note(Marko): Now that we've replaced the variable, 
+                        //              seek to the newline or  and exit the 
+                        //              switch statement (where we will copy 
+                        //              over the newline char before 
+                        //              incrementing ReadIndex in the for-loop)
+                        // NOTE(Marko): Since it is legal for there to be 
+                        //              whitespace, tabs, or carriage returns 
+                        //              immediately after an A-instruction 
+                        //              symbol, we will need to seek to the 
+                        //              first instance of one of these, and 
+                        //              then seek to the newline while 
+                        //              removing the rest of the stuff (this 
+                        //              will remove inline comments)
+                        while((ReadAsmString->Contents[ReadIndex] != 
+                                    NEWLINE) && 
+                              (ReadAsmString->Contents[ReadIndex] != 
+                                    CARRIAGE_RETURN) &&
+                              (ReadAsmString->Contents[ReadIndex] != 
+                                    WHITESPACE) &&
+                              (ReadAsmString->Contents[ReadIndex] != 
+                                    TAB))
+                        {
+                            ReadIndex++;
+                        }
+                        while(ReadAsmString->Contents[ReadIndex] != NEWLINE)
+                        {
+                            ReadIndex++;
+                            RemovedCharsCount++;
+                        }
+                    }
+                    else
                     {
                         UserDefinedVariableCount++;
                     }
+
                 }
             } break;
 
@@ -311,18 +373,12 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                     ReadIndex++;
                     RemovedCharsCount++;
                 }
-                WriteAsmString->Contents[WriteIndex] = 
-                    ReadAsmString->Contents[ReadIndex];
-                WriteIndex++;
                 (*LineCount)++;  
             } break;
 
             case A_INSTRUCTION_SYMBOL:
             {
-                // NOTE(Marko): First copy the @ over
-                WriteAsmString->Contents[WriteIndex] = 
-                    ReadAsmString->Contents[ReadIndex];
-                WriteIndex++;
+                
                 // NOTE(Marko): Then check if the next symbol is a number
                 if((ReadIndex <ReadAsmString->Length - 1) &&
                    (!IsCharNumber(ReadAsmString->Contents[ReadIndex+1]))) 
@@ -341,39 +397,18 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                         CurrentChar++;
                     }
                     uint32 FoundIndex = 0;
+
+                    // TODO(Marko): Once I've confirmed that my first pass 
+                    //              works, remove this first condition as it 
+                    //              is a pointless iteration through the 
+                    //              PredefinedVariableTable.
                     if(WhereInVariableTable(PredefinedVariableTable, 
                                             &AInstructionSymbol,
                                             &FoundIndex))
                     {
-                        // NOTE(Marko): Retrieve the matched entry, stringify 
-                        //              the VariableAddress, and copy that 
-                        //              into WriteAsmString, then increment 
-                        //              ReadAsmString to just before NEWLINE. 
-                        uint16 VariableAddress = PredefinedVariableTable->VariableAddresses[FoundIndex];
-                        asm_string StringedVariableAddress = 
-                            UInt16ToAsmString(VariableAddress);
-
-                        CopyString(StringedVariableAddress.Contents,
-                                   StringedVariableAddress.Length,
-                                   WriteAsmString->Contents + WriteIndex,
-                                   WriteAsmString->Length - RemovedCharsCount);
-
-                        
-                        // NOTE(Marko): We've removed the AInstruction Symbol 
-                        //              here and replaced it with a numerical 
-                        //              address.
-                        RemovedCharsCount += (AInstructionSymbol.Length - StringedVariableAddress.Length);
-                        WriteIndex += StringedVariableAddress.Length;
-
-                        while(ReadAsmString->Contents[ReadIndex] != NEWLINE)
-                        {
-                            ReadIndex++;
-                        }
-                        // NOTE(Marko): We've seeked to a newline 
-                        //              decrement ReadIndex. Then the switch 
-                        //              statement can handle the newline
-                        ReadIndex--;
-
+                        // NOTE(Marko): We should've replaced all predefined 
+                        //              variables in the first pass. 
+                        InvalidCodePath;
                     }
                     else if(WhereInVariableTable(UserDefinedVariableTable,
                                                  &AInstructionSymbol,
@@ -431,22 +466,18 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                                            *LineCount);
                 CurrentLabelIndex++;
                 (*LineCount)--;
-                WriteAsmString->Contents[WriteIndex] = 
-                    ReadAsmString->Contents[ReadIndex];
-                WriteIndex++; 
             } break;
 
             default:
             {
-                // NOTE(Marko): Copy over the character from the old string to 
-                //              the new string (take note that they are using 
-                //              different indices so we need to manually 
-                //              increment WriteIndex)
-                WriteAsmString->Contents[WriteIndex] = 
-                    ReadAsmString->Contents[ReadIndex];
-                WriteIndex++;               
+                // NOTE(Marko): Nothing happens here by default -- we simply 
+                //              exit the switch statement and proceed to copy 
+                //              the character.        
             }
         }
+        WriteAsmString->Contents[WriteIndex] = 
+                    ReadAsmString->Contents[ReadIndex];
+        WriteIndex++;
     }
 
     TotalRemovedCharsCount += RemovedCharsCount;
