@@ -158,7 +158,7 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
                         AInstructionSymbol.Length++;
                         CurrentChar++;
                     }
-                    
+
                     uint32 FoundIndex = 0; 
                     if(WhereInVariableTable(PredefinedVariableTable, 
                                             &AInstructionSymbol,
@@ -292,12 +292,6 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
     // NOTE(Marko): Adjust the length of both strings
     WriteAsmString->Length -= RemovedCharsCount;
     ReadAsmString->Length -= RemovedCharsCount;
-
-    DebugPrintAsmString(WriteAsmString); 
-
-    OutputDebugString("User-defined Variable Count: ");
-    DebugPrintUInt32(UserDefinedVariableCount);
-
 
     InitializeUserDefinedVariableTable(UserDefinedVariableTable, 
                                        UserDefinedVariableCount);

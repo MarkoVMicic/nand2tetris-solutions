@@ -1,36 +1,24 @@
-#include "process_symbols.h"
+#include "variable_table.h"
 
-// TODO(Marko): Figure out what kind of memory strategy we are going to use.
-//              Right now this won't work because I haven't allocated memory 
-//              for anything. 
-//
-//              !!! IDEA(Marko): 
-//              Perhaps after removing all the comments and whitespace, we can
-//              then count the number of variables that are used in the 
-//              program, and use that information to allocate the entire 
-//              variable table at once. This will prevent us from littering 
-//              the code with mallocs which can cause heap fragmentation (and 
-//              is just generally quite slow). We can even count the size of 
-//              all the strings and just allocate one mega struct with strings 
-//              and an array of string lengths etc so that we can easily find 
-//              the variable strings we need.  
 
-#define PREDEFINED_VAR_COUNT 23
 
-internal bool32 IsInVariableTable(variable_table *VariableTable, 
-                                  asm_string *AsmString)
-{                                  
-    bool32 Result = false; 
+
+internal void DEBUGPrintVariableTable(variable_table *VariableTable)
+{
+    printf("Variable Table Printing:\n\n");
     for(uint32 i = 0; i < VariableTable->Size; i++)
     {
-        if(AsmStringsMatch(&VariableTable->VariableNames[i], AsmString))
-        {
-            Result = true;
-            break;
-        }
-    }
+        uint32 StringLength = VariableTable->VariableNames[i].Length;
+        char *String = VariableTable->VariableNames[i].Contents;
 
-    return(Result);
+        for(uint32 j = 0; j < StringLength; j++)
+        {
+            printf("%c", String[j]);
+        }
+        printf("\t\t");
+        printf("%u", VariableTable->VariableAddresses[i]);
+        printf("\n");
+    }
 }
 
 
@@ -138,8 +126,6 @@ variable_table CreatePredefinedVariableTable(void)
     AddVariableToVariableTable(&Result, 21, "THIS", 4, (uint16)3);
     AddVariableToVariableTable(&Result, 22, "THAT", 4, (uint16)4);
 
-    DEBUGPrintVariableTable(&Result);
-
     return(Result);                                             
 }
 
@@ -208,3 +194,5 @@ internal void FreeVariableTable(variable_table *VariableTable)
     VirtualFree(VariableTable->VariableNames, 0, MEM_RELEASE);
     VirtualFree(VariableTable->VariableAddresses, 0, MEM_RELEASE);
 }
+
+
