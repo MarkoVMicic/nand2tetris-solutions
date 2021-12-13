@@ -1,18 +1,5 @@
 #include "preprocess.h"
 
-// TODO(Marko): We can probably make a SwapPointers() macro. Figure it out if 
-//              you have some time.
-// TODO(Marko): Conversely, perhaps we should scrap this function and just do 
-//              it inline, because this function forces us to copy all of the 
-//              data in the structs around instead of just swapping the 
-//              pointers... 
-inline void SwapAsmStringPointers(asm_string *A, asm_string *B)
-{
-    asm_string Temp = *A;
-    *A = *B;
-    *B = Temp;
-}
-
 
 // NOTE(Marko): I think the compiler will make this fast? It's the simplest 
 //              thing I can think of xD. Since it's a uint16 it can't get 
@@ -109,8 +96,6 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
     uint32 LabelCount = 0;
     for(uint32 ReadIndex = 0; ReadIndex < ReadAsmString->Length; ReadIndex++)
     {
-        // TODO(Marko): pull out the copying of the character into an inline 
-        //              function? This would avoid code copy-pasta
         // TODO(Marko): This is a useful place to start recording errors. What 
         //              would we need to do that? An error struct maybe, which 
         //              gets passed into here, and written to, and returned? 
@@ -227,7 +212,9 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
 
             default:
             {
-                
+                // NOTE(Marko): Nothing happens here by default -- we simply 
+                //              exit the switch statement and proceed to copy 
+                //              the character.
             }
         }
         // NOTE(Marko): After handling the current char and moving ReadIndex 
@@ -265,10 +252,12 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
 
     // NOTE(Marko): Swap the AsmStrings so that we can continue selectively 
     //              copying from Old to New
-    SwapAsmStringPointers(ReadAsmString, WriteAsmString);
+    asm_string *Temp = ReadAsmString;
+    ReadAsmString = WriteAsmString;
+    WriteAsmString = Temp;
 
     
-    uint32 TotalRemovedCharsCount = RemovedCharsCount;
+    TotalRemovedCharsCount += RemovedCharsCount;
     RemovedCharsCount = 0;
     WriteIndex = 0;
     *LineCount = 0;
@@ -466,11 +455,13 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
     ReadAsmString->Length -= RemovedCharsCount;
     WriteAsmString->Length -= RemovedCharsCount;
     // NOTE(Marko): Swap the pointers back again now that the second pass is 
-    //              done. 
-    SwapAsmStringPointers(ReadAsmString, WriteAsmString);
+    //              done. ReadAsmString now points back to the memory that it 
+    //              first pointed to when it was passed into this function. 
+    Temp = ReadAsmString;
+    ReadAsmString = WriteAsmString;
+    WriteAsmString = Temp;
 
-
-    // TODO(Marko): Iterate through the Label Table to fill in the addresses 
+    // NOTE(Marko): Iterate through the Label Table to fill in the addresses 
     //              of the Variable Table. 
     for(uint32 LabelIndex = 0; LabelIndex < LabelTable.Size; LabelIndex++)
     {
@@ -484,7 +475,7 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
         }
     }
 
-    // TODO(Marko): Iterate through the Variable Table to fill in all 
+    // NOTE(Marko): Iterate through the Variable Table to fill in all 
     //              remaining uninitialized variable addresses. 
     uint16 CurrentUserDefinedAddress = USER_DEFINED_VAR_ADDRESS_START;
     for(uint32 UserDefinedIndex = 0; 
@@ -500,9 +491,15 @@ internal void PreprocessAsmString(asm_string *ReadAsmString,
         }
     }
 
+    // NOTE(Marko): We no longer need Label Table, so we free it. 
     FreeVariableTable(&LabelTable);
 
     // NOTE(Marko): IMPORTANT: Make sure you free the correct memory! This 
     //                         depends on how many times you swapped pointers. 
+    //                         For odd numbers of passes, free ReadAsmString. 
+    //                         For even numbers of passes, free 
+    //                         WriteAsmString. As of this comment 
+    //                         (2021-12-13), we have two passes, so we free 
+    //                         WriteAsmString.
     FreeAsmString(WriteAsmString);
 }

@@ -12,6 +12,10 @@
 // NOTE(Marko): Specified by nand2tetris to start here. 
 #define USER_DEFINED_VAR_ADDRESS_START 16
 #define USER_DEFINED_VAR_ADDRESS_END 15000
+
+// NOTE(Marko): 65535 is unreachable using 15-bit addressing in the 
+//              nand2tetris computer, so we can use it as a flag for 
+//              uninitialized
 #define UNINITIALIZED_ADDRESS 65535
 
 
