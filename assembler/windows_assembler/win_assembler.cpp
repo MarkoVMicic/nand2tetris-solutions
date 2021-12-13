@@ -3,6 +3,7 @@
 #include "win_assembler.h"
 
 // NOTE(Marko): Doing a unity build. 
+#include "asm_string.cpp"
 #include "process_symbols.cpp"
 #include "preprocess.cpp"
 #include "parse_instructions.cpp"
