@@ -132,7 +132,6 @@ variable_table CreatePredefinedVariableTable(void)
 internal void InitializeUserDefinedVariableTable(variable_table *VariableTable,
                                                  uint32 Size)
 {
-    // TODO(Marko): Check that VirtualAlloc() succeeded before moving on! 
     VariableTable->Size = Size;
 
     VariableTable->VariableNames = 
