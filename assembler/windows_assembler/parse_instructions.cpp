@@ -64,11 +64,11 @@ internal uint32 AsmStringToUInt32(asm_string *NumericAsmString)
 }
 
 
-internal void UInt32ToAInstructionString(uint32 Number,
-                                         char *BinaryStringBuffer, 
-                                         uint32 BinaryStringLength)
+internal void UInt32ToBinaryString(uint32 Number,
+                                   char *BinaryStringBuffer, 
+                                   uint32 BinaryStringLength)
 {
-    // TODO(Marko): Asserts to check that the number is small enough! 
+    Assert(Number < 0xFFFF);
     uint32 CharsRemaining = BinaryStringLength;
     // NOTE(Marko): For A-instructions, set the msb to 0. 
     BinaryStringBuffer[0] ='0';
@@ -101,12 +101,12 @@ internal void UInt32ToAInstructionString(uint32 Number,
 }
 
 
-internal void UInt32ToAInstructionString(uint32 Number,
+internal void UInt32ToBinaryAsmString(uint32 Number,
                                          asm_string *BinaryAsmString)
 {
-    UInt32ToAInstructionString(Number, 
-                               BinaryAsmString->Contents, 
-                               BinaryAsmString->Length);
+    UInt32ToBinaryString(Number, 
+                         BinaryAsmString->Contents, 
+                         BinaryAsmString->Length);
 }
 
 
@@ -156,9 +156,9 @@ internal void ParseInstructions(asm_string *ReadAsmString,
     uint32 MachineCodeIndex = 0;
     uint32 LineCount = 0;
 
-    for(uint32 ReadAsmIndex = 0; 
-        ReadAsmIndex < ReadAsmString->Length; 
-        ReadAsmIndex++)
+    for(uint32 ReadIndex = 0; 
+        ReadIndex < ReadAsmString->Length; 
+        ReadIndex++)
     {
         // NOTE(Marko): This might seem a bit verbose but putting things into 
         //              the asm_string struct makes life simpler
@@ -170,96 +170,76 @@ internal void ParseInstructions(asm_string *ReadAsmString,
 
         bool32 ShouldCopy = true;
 
-        switch(ReadAsmString->Contents[ReadAsmIndex])
+        switch(ReadAsmString->Contents[ReadIndex])
         {
             case OPEN_BRACKET:
             {
                 // NOTE(Marko): This is a label which we have already used, so 
                 //              just ignore this line. 
                 ShouldCopy = false;
-                while(ReadAsmString->Contents[ReadAsmIndex] != NEWLINE)
+                while(ReadAsmString->Contents[ReadIndex] != NEWLINE)
                 {
-                    ReadAsmIndex++;
+                    ReadIndex++;
                 }
 
             } break;
 
-            // TODO(Marko): Major cleanup required here! 
             case A_INSTRUCTION_SYMBOL:
             {
-                if(IsCharNumber(ReadAsmString->Contents[ReadAsmIndex+1]))
+                asm_string AInstructionSymbol;
+                AInstructionSymbol.Contents = 
+                    &ReadAsmString->Contents[ReadIndex + 1];
+                AInstructionSymbol.Length = 0;
+                char *CurrentChar = AInstructionSymbol.Contents;
+                while(*CurrentChar != NEWLINE)
                 {
-                    asm_string DecimalAddressString;
-                    DecimalAddressString.Contents = 
-                        &ReadAsmString->Contents[ReadAsmIndex+1];
-
-                    DecimalAddressString.Length = 0;
-                    uint32 CurrentCharIndex = 0;
-                    while(DecimalAddressString.Contents[CurrentCharIndex] != NEWLINE)
-                    {
-                        CurrentCharIndex++;
-                        DecimalAddressString.Length++;
-                    }
-                    // TODO(Marko): Can we skip turning the string into a 
-                    //              uint32 and go straight to outputting the 
-                    //              binary digits?
-                    // TODO(Marko): Should this be a uint16?
-                    uint32 DecimalAddress = 
-                        AsmStringToUInt32(&DecimalAddressString);
-
-                    UInt32ToAInstructionString(DecimalAddress, 
-                                               &MachineCodeLine);
-                    
-                    // NOTE(Marko) Incrementing by the length of
-                    //             DecimalAddressString will push ReadAsmIndex 
-                    //             to the char just before the newline. 
-                    //             Incrementing it by one more will push it to 
-                    //             the newline, after which the for loop will 
-                    //             increment it one more time to point at the 
-                    //             first char of the next line. 
-                    ReadAsmIndex += DecimalAddressString.Length+1;
+                    AInstructionSymbol.Length++;
+                    CurrentChar++;
                 }
-                else
-                {
-                    // NOTE(Marko) Use UserDefinedVariableTable to lookup the 
-                    //             address and write the binary (stringed) 
-                    //             version into MachineCodeLine[].
-                    asm_string VariableSymbol;
-                    VariableSymbol.Contents = 
-                        &ReadAsmString->Contents[ReadAsmIndex+1];
-                    VariableSymbol.Length = 0;
-                    char *CurrentChar = VariableSymbol.Contents;
-                    while(*CurrentChar != NEWLINE)
-                    {
-                        CurrentChar++;
-                        VariableSymbol.Length++;
-                    }
 
+                // NOTE(Marko): Check if first character is numeric or not
+                uint32 DecimalAddress = 0;
+                if(!IsCharNumber(AInstructionSymbol.Contents[0]))
+                {
+                    // NOTE(Marko): If it's not numeric, lookup the decimal 
+                    //              address in the UserDefinedVariableTable
                     uint32 FoundIndex = 0;
                     if(WhereInVariableTable(UserDefinedVariableTable,
-                                            &VariableSymbol,
+                                            &AInstructionSymbol,
                                             &FoundIndex))
                     {
-                        uint32 DecimalAddress = UserDefinedVariableTable->VariableAddresses[FoundIndex];
-                        UInt32ToAInstructionString(DecimalAddress, 
-                                               &MachineCodeLine);
-                    
-                    // NOTE(Marko) Incrementing by the length of
-                    //             DecimalAddressString will push ReadAsmIndex 
-                    //             to the char just before the newline. 
-                    //             Incrementing it by one more will push it to 
-                    //             the newline, after which the for loop will 
-                    //             increment it one more time to point at the 
-                    //             first char of the next line. 
-                        ReadAsmIndex += VariableSymbol.Length+1;
+                        DecimalAddress = UserDefinedVariableTable->VariableAddresses[FoundIndex];
                     }
                     else
                     {
-                        // NOTE(Marko): Variable symbol wasn't found in the 
-                        //              UserDefinedVariableTable.
+                        // NOTE(Marko): Somehow we have a non-numeric 
+                        //              AInstructionSymbol that isn't in our 
+                        //              UserDefinedVariableTable, which is an 
+                        //              error.
+                        // TODO(Marko): Error handling
                         InvalidCodePath;
                     }
                 }
+                else
+                {
+                    // NOTE(Marko): If it is numeric, then convert the string 
+                    //              into a uint32.
+                    DecimalAddress = AsmStringToUInt32(&AInstructionSymbol);
+                }
+
+                // NOTE(Marko): Convert uint32 into "binary string"
+                UInt32ToBinaryAsmString(DecimalAddress, 
+                                        &MachineCodeLine);
+
+                // NOTE(Marko) Incrementing by the length of
+                //             AInstructionSymbol will push ReadIndex 
+                //             to the char just before the newline. 
+                //             Incrementing it by one more will push it to 
+                //             the newline, after which the for loop will 
+                //             increment it one more time to point at the 
+                //             first char of the next line. 
+                ReadIndex += AInstructionSymbol.Length+1;
+
             } break;
 
             default:
@@ -268,7 +248,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 //              bit to 1. 
                 asm_string CInstructionSymbol;
                 CInstructionSymbol.Contents = 
-                    &ReadAsmString->Contents[ReadAsmIndex];
+                    &ReadAsmString->Contents[ReadIndex];
                 CInstructionSymbol.Length = 0;
                 char *CurrentChar = CInstructionSymbol.Contents;
                 while(*CurrentChar != NEWLINE)
@@ -447,7 +427,7 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                            &MachineCodeLine.Contents[13],
                            MachineCodeLine.Length - 13);
 
-                ReadAsmIndex += CInstructionSymbol.Length;
+                ReadIndex += CInstructionSymbol.Length;
             }
         }
 
