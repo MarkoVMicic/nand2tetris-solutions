@@ -318,7 +318,10 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 char CompBinaryAsmStringContents[COMP_BINARY_PORTION_LENGTH];
                 CompBinaryAsmString.Contents = CompBinaryAsmStringContents;
                 CompBinaryAsmString.Length = COMP_BINARY_PORTION_LENGTH;
-                // TODO(Marko): Evaluate if we actually want to spend the time doing this particular brand of zero initialization for the comp binary string, since there is no NULL string. 
+                // TODO(Marko): Evaluate if we actually want to spend the time
+                //              doing this particular brand of zero 
+                //              initialization for the comp binary string, 
+                //              since there is no NULL string. 
                 ZeroCharInitializeAsmString(&CompBinaryAsmString);
 
                 uint32 CompBeginIndex = 0; 
@@ -410,6 +413,13 @@ internal void ParseInstructions(asm_string *ReadAsmString,
                 //         
                 //      Index       0 1 2 3 4  5  6  7  8  9  10 11 12 13 14 15
                 //      Data        1 1 1 a c1 c2 c3 c4 c5 c6 d1 d2 d3 j1 j2 j3
+                //
+                //      CompBinaryAsmString.Contents == [a,c1,c2,c3,c4,c5,c6]
+                //      DestBinaryAsmString.Contents == [d1, d2, d3]
+                //      JumpBinaryAsmString.Contents == [j1, j2, j3]
+
+                // NOTE(Marko): First three digits are always 1 in a 
+                //              c-instruction. 
                 MachineCodeLine.Contents[0] = '1';
                 MachineCodeLine.Contents[1] = '1';
                 MachineCodeLine.Contents[2] = '1';
