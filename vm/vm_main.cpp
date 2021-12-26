@@ -1,5 +1,6 @@
 #include "vm_main.h"
 #include "vm_string.h"
+#include "translate_vm.h"
 
 int main(int argc, char **argv)
 {
@@ -25,6 +26,7 @@ int main(int argc, char **argv)
         vm_string ASMOutputBuffer = 
             AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
+        TranslateVMInstructionsToAsm(&VMInput, &ASMOutputBuffer);
     }
 
     FreeEntireFileMemory(InputFileContents); 
