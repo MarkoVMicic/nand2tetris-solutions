@@ -83,6 +83,7 @@ read_file_result ReadEntireFile(char *FileName)
             {
                 // TODO(Marko): Figure out how fread() works. 
                 fread(Result.Contents, 1, Result.Length, FileHandle);
+                Result.Contents[Result.Length] = '\0';
             }
             else
             {
