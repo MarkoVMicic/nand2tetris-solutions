@@ -1,1 +1,8 @@
 *.DS_Store
+.gitignore
+nand2tetris_downloads/*
+shell.bat
+assembler/build/*
+assembler/windows_assembler/build/*
+*.obj
+*.exe
