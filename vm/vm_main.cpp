@@ -1,4 +1,5 @@
 #include "vm_main.h"
+#include "vm_string.h"
 
 int main(int argc, char **argv)
 {
@@ -16,6 +17,13 @@ int main(int argc, char **argv)
     read_file_result InputFileContents = ReadEntireFile(InputFileName);
     if(InputFileContents.Length > 0)
     {
+        vm_string VMInput = {0};
+        VMInput.Contents = InputFileContents.Contents;
+        VMInput.Length = InputFileContents.Length;
+        VMInput.MemorySize = VMInput.Length; 
+
+        vm_string ASMOutputBuffer = 
+            AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
     }
 
