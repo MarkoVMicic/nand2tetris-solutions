@@ -14,3 +14,17 @@ vm_string AllocateVMString(uint32 MemoryBlockSize)
     return(Result);
 }
 
+
+void CopyVMString(char *SourceString,
+                  uint32 SourceStringLength,
+                  char *DestString,
+                  uint32 DestStringLength)
+{
+    Assert(DestStringLength >= SourceStringLength);
+    
+    for(uint32 i = 0; i < SourceStringLength; i++)
+    {
+        DestString[i] = SourceString[i];
+    }
+}                  
+

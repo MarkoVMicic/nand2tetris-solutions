@@ -17,5 +17,10 @@ struct vm_string
 
 vm_string AllocateVMString(uint32 MemoryBlockSize);
 
+void CopyVMString(char *SourceString, 
+                  uint32 SourceStringLength, 
+                  char *DestString, 
+                  uint32 DestStringLength);
+
 #define VM_STRING_H
 #endif
