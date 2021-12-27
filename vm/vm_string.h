@@ -1,4 +1,6 @@
 #if !defined(VM_STRING_H)
+#include "vm_main.h"
+
 
 
 #define DEFAULT_INITIAL_VM_STRING_SIZE 256

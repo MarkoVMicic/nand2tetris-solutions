@@ -10,8 +10,8 @@ internal void TranslateLine(vm_string *VMInputString,
 }
 
 
-void TranslateInstructionsToAsm(vm_string *VMInputString, 
-                                vm_string *ASMOutputString)
+void TranslateVMInstructionsToAsm(vm_string *VMInputString, 
+                                  vm_string *ASMOutputString)
 {
     // TODO(Marko): Read each line until newline, then split by whitespace.
     // TODO(Marko): Create table for commands
@@ -23,14 +23,14 @@ void TranslateInstructionsToAsm(vm_string *VMInputString,
     uint32 LineCount = 1;
     uint32 OutputIndex = 0;
     for(uint32 InputIndex = 0; 
-        InputIndex < VMInputString->Length; 
+        InputIndex < VMInputString->CurrentLength; 
         InputIndex++)
     {
         switch(VMInputString->Contents[InputIndex])
         {
             case COMMENT_SLASH:
             {
-                if((InputIndex < VMInputString->Length-1) && 
+                if((InputIndex < VMInputString->CurrentLength-1) && 
                    (VMInputString->Contents[InputIndex+1] == COMMENT_SLASH))
                 {
                     while(VMInputString->Contents[InputIndex] != NEWLINE)
@@ -53,7 +53,7 @@ void TranslateInstructionsToAsm(vm_string *VMInputString,
             case NEWLINE:
             {
 #if VM_DEBUG
-                printf("Line %d processed");
+                printf("Line %d processed\n", LineCount);
 #endif
                 LineCount++;
             } break;
@@ -63,7 +63,7 @@ void TranslateInstructionsToAsm(vm_string *VMInputString,
                 TranslateLine(VMInputString, 
                               &InputIndex, 
                               ASMOutputString, 
-                              &OutputIndex)
+                              &OutputIndex);
             }
         }
     }

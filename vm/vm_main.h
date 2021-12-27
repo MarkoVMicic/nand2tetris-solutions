@@ -49,74 +49,7 @@ struct read_file_result
     uint32 Length;
 };
 
-read_file_result ReadEntireFile(char *FileName)
-{
-    read_file_result Result = {0};
 
-    FILE *FileHandle = fopen(FileName, "r");
-    if(FileHandle)
-    {
-        // NOTE(Marko): Get file size
-        // NOTE(Marko): This is not a robust way to get file size. It works 
-        //              for our input though. In particular it won't work for 
-        //              files of size >4GB
-        if(fseek(FileHandle, 0, SEEK_END) == 0)
-        {
-            // NOTE(Marko): fseek() returns 0 upon success
-            Result.Length = ftell(FileHandle);
-        }
-        else
-        {
-            printf("fseek() failed\n");
-            Result.Length = 0;
-        }
-
-        // NOTE(Marko): Reset to beginning of file
-        if((Result.Length != 0) && (fseek(FileHandle, 0, SEEK_SET) == 0))
-        {
-            // NOTE(Marko): fseek() returns 0 upon success
-            // NOTE(Marko): Add 1 to buffer size because fread() won't null 
-            //              terminate. 
-            Result.Contents = 
-                (char *)malloc((Result.Length + 1) * sizeof(char));
-            if(Result.Contents)
-            {
-                // TODO(Marko): Figure out how fread() works. 
-                fread(Result.Contents, 1, Result.Length, FileHandle);
-                Result.Contents[Result.Length] = '\0';
-            }
-            else
-            {
-                printf("malloc() failed\n");
-                Result.Length = 0;
-            }
-        }
-        else
-        {
-            printf("fseek() failed\n");
-            Result.Length = 0;
-        }
-    }
-    else
-    {
-        printf("fopen() failed. \n");
-        Result = {0};
-    }
-
-    fclose(FileHandle);
-
-    return(Result);
-}
-
-
-void FreeEntireFileMemory(read_file_result FileMemory)
-{
-    if((FileMemory.Length > 0) && (FileMemory.Contents != NULL))
-    {
-        free(FileMemory.Contents);
-        FileMemory.Length = 0;
-    }
-}
 
 #define VM_MAIN_H
 #endif
