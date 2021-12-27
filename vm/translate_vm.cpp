@@ -1,4 +1,5 @@
 #include "translate_vm.h"
+#include "vm_tokens.h"
 
 
 internal void TranslateLine(vm_string *VMInputString, 
@@ -6,6 +7,8 @@ internal void TranslateLine(vm_string *VMInputString,
                             vm_string *ASMOutputString, 
                             uint32 *OutputIndex)
 {
+    vm_tokens VMTokens = TokenizeLine(VMInputString,
+                                      InputIndex);
 
 }
 
