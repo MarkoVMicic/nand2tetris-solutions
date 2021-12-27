@@ -1,6 +1,69 @@
 #include "vm_tokens.h"
 #include "vm_string.h"
 
+
+vm_string ParseReturnCommand(void)
+{
+    vm_string Result = {0};
+
+    return(Result);
+}
+
+
+vm_string ParseArithmeticCommand(vm_string *VMStringArithmeticCommand)
+{
+    vm_string Result = {0};
+    if(VMStringsAreEqual(VMStringArithmeticCommand, "add", 3))
+    {
+        /* NOTE(Marko): add translates to:
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @SP
+                            M=M-1
+                            A=M
+                            M=M+D
+                            @SP
+                            M=M+1
+        */
+        Result.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n";
+        Result.CurrentLength = 48;
+        Result.MemorySize = 49;
+    }
+
+    return(Result);
+}
+
+vm_string ParseTokensToAsm(vm_tokens *VMTokens)
+{
+    vm_string Result = {0};
+    // TODO(Marko): Figure out if we should first examine 
+    //              VMTokens->VMTokenCount before going through the tokens as 
+    //              a preliminary filter (e.g. if VMTokens->VMTokenCount == 1, 
+    //              then check only for "add" "sub", "eq" etc)
+    // TODO(Marko): Parse "add" "push constant %d" -- this will take care of 
+    //              SimpleAdd.vm
+
+    switch(VMTokens->VMTokenCount)
+    {
+        case 1:
+        {
+            if(!VMStringsAreEqual(&VMTokens->VMTokens[0], "return", 6))
+            {
+                Result = ParseArithmeticCommand(&VMTokens->VMTokens[0]);
+            }
+            else
+            {
+                Result = ParseReturnCommand();
+            }
+        } break;
+    }
+
+
+    return(Result);
+}
+
 vm_tokens TokenizeLine(vm_string *VMInputString, 
                        uint32 *InputIndex)
 {

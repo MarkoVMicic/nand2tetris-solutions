@@ -15,6 +15,14 @@ struct vm_string
     uint32 MemorySize;  
 };
 
+bool32 VMStringsAreEqual(vm_string *VMStringA, 
+                         vm_string *VMStringB);
+
+
+bool32 VMStringsAreEqual(vm_string *VMStringA, 
+                         char *StringB, 
+                         uint32 StringBLength);
+
 vm_string AllocateVMString(uint32 MemoryBlockSize);
 
 void CopyVMString(char *SourceString, 

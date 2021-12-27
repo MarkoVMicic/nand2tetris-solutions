@@ -13,7 +13,10 @@ struct vm_tokens
     uint32 VMTokenCount;
 };
 
-vm_tokens TokenizeLine(vm_string *VMInputString, 
+
+vm_string ParseTokensToAsm(vm_tokens *VMTokens);
+
+vm_tokens TokenizeLine(vm_string *VMInputString,
                        uint32 *InputIndex);
 
 #define VM_TOKENS_H

@@ -9,6 +9,7 @@ internal void TranslateLine(vm_string *VMInputString,
 {
     vm_tokens VMTokens = TokenizeLine(VMInputString,
                                       InputIndex);
+    vm_string AsmInstructions = ParseTokensToAsm(&VMTokens);
 
 }
 
