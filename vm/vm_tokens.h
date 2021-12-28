@@ -14,7 +14,7 @@ struct vm_tokens
 };
 
 
-vm_string ParseTokensToAsm(vm_tokens *VMTokens);
+vm_string ParseTokensToASM(vm_tokens *VMTokens);
 
 vm_tokens TokenizeLine(vm_string *VMInputString,
                        uint32 *InputIndex);

@@ -9,12 +9,12 @@ internal void TranslateLine(vm_string *VMInputString,
 {
     vm_tokens VMTokens = TokenizeLine(VMInputString,
                                       InputIndex);
-    vm_string AsmInstructions = ParseTokensToAsm(&VMTokens);
+    vm_string ASMInstructions = ParseTokensToASM(&VMTokens);
 
 }
 
 
-void TranslateVMInstructionsToAsm(vm_string *VMInputString, 
+void TranslateVMInstructionsToASM(vm_string *VMInputString, 
                                   vm_string *ASMOutputString)
 {
     // TODO(Marko): Read each line until newline, then split by whitespace.

@@ -96,7 +96,7 @@ int main(int argc, char **argv)
         vm_string ASMOutputBuffer = 
             AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
-        TranslateVMInstructionsToAsm(&VMInput, &ASMOutputBuffer);
+        TranslateVMInstructionsToASM(&VMInput, &ASMOutputBuffer);
     }
 
     FreeEntireFileMemory(InputFileContents); 

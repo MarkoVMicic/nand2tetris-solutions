@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-void TranslateVMInstructionsToAsm(vm_string *VMInputString, 
+void TranslateVMInstructionsToASM(vm_string *VMInputString, 
                                   vm_string *ASMOutputString);
 
 #define TRANSLATE_VM_H

@@ -1,6 +1,59 @@
 #include "vm_tokens.h"
 #include "vm_string.h"
 
+// TODO(Marko): Instead of heap allocating, perhaps it's easier to simply 
+//              figure out what the maximum length of any token translation is 
+//              and simply put that on the stack. 
+vm_string ParsePushCommand(vm_tokens *VMTokens)
+{
+    Assert(VMTokens->VMTokenCount == 3);
+    vm_string Result = {0};
+
+    vm_string VMStringPushSegment = VMTokens->VMTokens[1];
+    vm_string VMStringPushValue = VMTokens->VMTokens[2];
+
+    if(VMStringsAreEqual(&VMStringPushSegment, "constant", 8))
+    {
+        /* NOTE(Marko): "push constant X" translates to
+                            @X
+                            D=A
+                            @SP
+                            A=M
+                            M=D
+                            @SP
+                            M=M+1 
+
+                        Excluding X, there are 28 characters. Then we simply 
+                        need to include the length of VMStringPushValue
+
+        */
+        Result.CurrentLength = 28+VMStringPushValue.CurrentLength;
+        Result.MemorySize = Result.CurrentLength+1;
+        Result.Contents = (char *)malloc(Result.MemorySize*sizeof(char));
+
+        Result.Contents[Result.CurrentLength] = '\0';
+
+        Result.Contents[0] = '@';
+        char *PushValuePosition = &Result.Contents[1];
+        // NOTE(Marko): Passing (Result.CurrentLength-1) to account for the 
+        //              first char already being filled in by '@'
+        CopyVMString(VMStringPushValue.Contents,
+                     VMStringPushValue.CurrentLength,
+                     PushValuePosition,
+                     Result.CurrentLength-1);
+        char *OneAfterPushValue = PushValuePosition+VMStringPushValue.CurrentLength;
+        char *RestOfPushConstantString = "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+        uint32 RestOfPushConstantStringLength = 26;
+        CopyVMString(RestOfPushConstantString,
+                     RestOfPushConstantStringLength,
+                     OneAfterPushValue,
+                     Result.CurrentLength-1-VMStringPushValue.CurrentLength);
+    }
+
+    return Result;
+
+}
+
 
 vm_string ParseReturnCommand(void)
 {
@@ -10,12 +63,14 @@ vm_string ParseReturnCommand(void)
 }
 
 
-vm_string ParseArithmeticCommand(vm_string *VMStringArithmeticCommand)
+vm_string ParseArithmeticCommand(vm_tokens *VMTokens)
 {
+    Assert(VMTokens->VMTokenCount == 1);
+    vm_string VMStringArithmeticCommand = VMTokens->VMTokens[0];
     vm_string Result = {0};
-    if(VMStringsAreEqual(VMStringArithmeticCommand, "add", 3))
+    if(VMStringsAreEqual(&VMStringArithmeticCommand, "add", 3))
     {
-        /* NOTE(Marko): add translates to:
+        /* NOTE(Marko): "add" translates to:
                             @SP
                             M=M-1
                             A=M
@@ -26,6 +81,8 @@ vm_string ParseArithmeticCommand(vm_string *VMStringArithmeticCommand)
                             M=M+D
                             @SP
                             M=M+1
+
+                        Nothing depends on the input, so we can just hard code it in. 
         */
         Result.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n";
         Result.CurrentLength = 48;
@@ -35,7 +92,7 @@ vm_string ParseArithmeticCommand(vm_string *VMStringArithmeticCommand)
     return(Result);
 }
 
-vm_string ParseTokensToAsm(vm_tokens *VMTokens)
+vm_string ParseTokensToASM(vm_tokens *VMTokens)
 {
     vm_string Result = {0};
     // TODO(Marko): Figure out if we should first examine 
@@ -49,15 +106,34 @@ vm_string ParseTokensToAsm(vm_tokens *VMTokens)
     {
         case 1:
         {
-            if(!VMStringsAreEqual(&VMTokens->VMTokens[0], "return", 6))
-            {
-                Result = ParseArithmeticCommand(&VMTokens->VMTokens[0]);
-            }
-            else
+            if(VMStringsAreEqual(&VMTokens->VMTokens[0], "return", 6))
             {
                 Result = ParseReturnCommand();
             }
+            else
+            {
+                Result = ParseArithmeticCommand(VMTokens);                
+            }
         } break;
+
+        case 2:
+        {
+
+        } break;
+
+        case 3:
+        {
+            if(VMStringsAreEqual(&VMTokens->VMTokens[0], "push", 4))
+            {
+                Result = ParsePushCommand(VMTokens);
+            }
+
+        } break;
+
+        default:
+        {
+            InvalidCodePath; 
+        }
     }
 
 
