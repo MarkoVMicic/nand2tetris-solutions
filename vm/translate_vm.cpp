@@ -27,19 +27,19 @@ internal void TranslateLine(vm_string *VMInputString,
                             vm_string *ASMOutputString, 
                             uint32 *OutputIndex)
 {
-    // TODO(Marko): Create fixed size buffers for VMTokens and ASMInstructions 
-    //              and pass those in. Check if they need growing during 
-    //              processing (ideally we would choose a buffer size large 
-    //              enough to not need to grow them). Then we can simply free 
-    //              them at the end of this function, allowing our allocation 
-    //              and free to be in the same part of the code. 
-    vm_tokens VMTokens = TokenizeLine(VMInputString,
-                                      InputIndex);
-    vm_string ASMInstructions = ParseTokensToASM(&VMTokens);
 
-    WriteToASMOutput(&ASMInstructions, ASMOutputString, OutputIndex);
+    vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
+                                           DEFAULT_INITIAL_VM_STRING_SIZE);
+    TokenizeLine(VMInputString, InputIndex, VMTokens);
 
-    int BreakHere = 5;
+    vm_string *ASMInstructions = 
+        AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
+    ParseTokensToASM(VMTokens, ASMInstructions);
+
+    WriteToASMOutput(ASMInstructions, ASMOutputString, OutputIndex);
+
+    FreeVMTokens(VMTokens);
+    FreeVMString(ASMInstructions);
 
 }
 

@@ -64,14 +64,28 @@ void GrowVMString(vm_string *VMString)
 }
 
 
-vm_string AllocateVMString(uint32 MemoryBlockSize)
+void FreeVMString(vm_string *VMString)
 {
-    vm_string Result = {0};
+    free(VMString->Contents);
+    free(VMString);
+}
 
-    Result.Contents = (char *)malloc(MemoryBlockSize*sizeof(char));
-    if(Result.Contents)
+
+vm_string *AllocateVMString(uint32 MemoryBlockSize)
+{
+    vm_string *Result = (vm_string *)malloc(sizeof(vm_string));
+
+    Result->Contents = (char *)malloc(MemoryBlockSize*sizeof(char));
+    if(Result->Contents)
     {
-        Result.MemorySize = MemoryBlockSize;
+        Result->MemorySize = MemoryBlockSize;
+        Result->CurrentLength = 0;
+        Result->Contents[MemoryBlockSize-1] = '\0';
+    }
+    else
+    {
+        printf("malloc failed! \n");
+        InvalidCodePath;
     }
 
     return(Result);

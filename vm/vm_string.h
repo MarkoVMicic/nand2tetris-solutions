@@ -3,7 +3,8 @@
 
 
 
-#define DEFAULT_INITIAL_VM_STRING_SIZE 256
+#define DEFAULT_INITIAL_VM_STRING_SIZE 32
+#define INITIAL_ASM_OUTPUT_STRING_SIZE 256
 
 struct vm_string
 {
@@ -25,7 +26,9 @@ bool32 VMStringsAreEqual(vm_string *VMStringA,
                          char *StringB, 
                          uint32 StringBLength);
 
-vm_string AllocateVMString(uint32 MemoryBlockSize);
+void FreeVMString(vm_string *VMString);
+
+vm_string *AllocateVMString(uint32 MemoryBlockSize);
 
 void CopyVMString(char *SourceString, 
                   uint32 SourceStringLength, 

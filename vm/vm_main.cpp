@@ -93,10 +93,10 @@ int main(int argc, char **argv)
         VMInput.CurrentLength = InputFileContents.Length;
         VMInput.MemorySize = VMInput.CurrentLength; 
 
-        vm_string ASMOutputBuffer = 
+        vm_string *ASMOutputBuffer = 
             AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
-        TranslateVMInstructionsToASM(&VMInput, &ASMOutputBuffer);
+        TranslateVMInstructionsToASM(&VMInput, ASMOutputBuffer);
     }
 
     FreeEntireFileMemory(InputFileContents); 
