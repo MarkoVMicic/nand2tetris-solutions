@@ -13,30 +13,38 @@ read_file_result ReadEntireFile(char *FileName)
         // NOTE(Marko): This is not a robust way to get file size. It works 
         //              for our input though. In particular it won't work for 
         //              files of size >4GB
+        uint32 FileSize = 0;
         if(fseek(FileHandle, 0, SEEK_END) == 0)
         {
             // NOTE(Marko): fseek() returns 0 upon success
-            Result.Length = ftell(FileHandle);
+            FileSize = ftell(FileHandle);
         }
         else
         {
             printf("fseek() failed\n");
-            Result.Length = 0;
+            FileSize = 0;
         }
 
         // NOTE(Marko): Reset to beginning of file
-        if((Result.Length != 0) && (fseek(FileHandle, 0, SEEK_SET) == 0))
+        if((FileSize != 0) && (fseek(FileHandle, 0, SEEK_SET) == 0))
         {
             // NOTE(Marko): fseek() returns 0 upon success
             // NOTE(Marko): Add 1 to buffer size because fread() won't null 
             //              terminate. 
             Result.Contents = 
-                (char *)malloc((Result.Length + 1) * sizeof(char));
+                (char *)malloc((FileSize + 1) * sizeof(char));
             if(Result.Contents)
             {
-                // TODO(Marko): Figure out how fread() works. 
-                fread(Result.Contents, 1, Result.Length, FileHandle);
-                Result.Contents[Result.Length] = '\0';
+                // NOTE(Marko): fread() returns the number of actually read 
+                //              elements. Since it appears that the CRT 
+                //              removes the carriage returns, this means that 
+                //              StringLength may be less than FileSize. 
+                uint32 StringLength = fread(Result.Contents, 
+                                            1, 
+                                            FileSize, 
+                                            FileHandle);
+                Result.Contents[StringLength] = '\0';
+                Result.Length = StringLength;
             }
             else
             {
