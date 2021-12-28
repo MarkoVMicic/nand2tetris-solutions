@@ -15,6 +15,8 @@ struct vm_string
     uint32 MemorySize;  
 };
 
+void GrowVMString(vm_string *VMString);
+
 bool32 VMStringsAreEqual(vm_string *VMStringA, 
                          vm_string *VMStringB);
 

@@ -2,14 +2,44 @@
 #include "vm_tokens.h"
 
 
+internal void WriteToASMOutput(vm_string *ASMInstructions,
+                               vm_string *ASMOutputString,
+                               uint32 *ASMOutputIndex)
+{
+    ASMOutputString->CurrentLength += ASMInstructions->CurrentLength;
+    // NOTE(Marko): Check if the buffer has become too small
+    if(ASMOutputString->CurrentLength >= ASMOutputString->MemorySize)
+    {
+        GrowVMString(ASMOutputString);
+    }
+    CopyVMString(ASMInstructions->Contents,
+                 ASMInstructions->CurrentLength,
+                 &ASMOutputString->Contents[*ASMOutputIndex],
+                 ASMOutputString->CurrentLength - *ASMOutputIndex);
+
+    // NOTE(Marko): Advance the ASMOutputIndex to refer to the next free slot 
+    *ASMOutputIndex += ASMInstructions->CurrentLength;
+}
+
+
 internal void TranslateLine(vm_string *VMInputString, 
                             uint32 *InputIndex, 
                             vm_string *ASMOutputString, 
                             uint32 *OutputIndex)
 {
+    // TODO(Marko): Create fixed size buffers for VMTokens and ASMInstructions 
+    //              and pass those in. Check if they need growing during 
+    //              processing (ideally we would choose a buffer size large 
+    //              enough to not need to grow them). Then we can simply free 
+    //              them at the end of this function, allowing our allocation 
+    //              and free to be in the same part of the code. 
     vm_tokens VMTokens = TokenizeLine(VMInputString,
                                       InputIndex);
     vm_string ASMInstructions = ParseTokensToASM(&VMTokens);
+
+    WriteToASMOutput(&ASMInstructions, ASMOutputString, OutputIndex);
+
+    int BreakHere = 5;
 
 }
 

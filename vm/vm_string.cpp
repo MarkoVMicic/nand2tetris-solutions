@@ -43,6 +43,27 @@ bool32 VMStringsAreEqual(vm_string *VMStringA,
 }
 
 
+void GrowVMString(vm_string *VMString)
+{
+    Assert(VMString->MemorySize <= VMString->CurrentLength);
+    // NOTE(Marko): Double size of buffer until the buffer is large enough. 
+    while(VMString->MemorySize <= VMString->CurrentLength)
+    {
+        VMString->MemorySize *= 2;
+    }
+    VMString->Contents = 
+        (char *)realloc((void *)VMString->Contents, 
+                        VMString->MemorySize);
+
+    if(VMString->Contents == NULL)
+    {
+        printf("realloc failed!\n");
+        InvalidCodePath;
+    }
+
+}
+
+
 vm_string AllocateVMString(uint32 MemoryBlockSize)
 {
     vm_string Result = {0};
