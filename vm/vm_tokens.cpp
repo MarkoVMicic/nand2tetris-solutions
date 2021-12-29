@@ -61,15 +61,15 @@ void ParsePushCommand(vm_tokens *VMTokens,
 
         ASMInstructions->Contents[0] = '@';
         char *PushValuePosition = &ASMInstructions->Contents[1];
-        // NOTE(Marko): Passing (ASMInstructions->CurrentLength-1) to account for the 
-        //              first char already being filled in by '@'
+        // NOTE(Marko): Passing (ASMInstructions->CurrentLength-1) to account 
+        //              for the first char already being filled in by '@'
         CopyVMString(VMStringPushValue.Contents,
                      VMStringPushValue.CurrentLength,
                      PushValuePosition,
                      ASMInstructions->CurrentLength-1);
         char *OneAfterPushValue = PushValuePosition+VMStringPushValue.CurrentLength;
         char *RestOfPushConstantString = "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
-        uint32 RestOfPushConstantStringLength = 26;
+        uint32 RestOfPushConstantStringLength = 27;
         CopyVMString(RestOfPushConstantString,
                      RestOfPushConstantStringLength,
                      OneAfterPushValue,
