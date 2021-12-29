@@ -30,8 +30,8 @@ vm_tokens *AllocateVMTokens(uint32 TokenCount, uint32 TokenVMStringSize)
 }
 
 
-void ParsePushCommand(vm_tokens *VMTokens, 
-                      vm_string *ASMInstructions)
+internal void ParsePushCommand(vm_tokens *VMTokens, 
+                               vm_string *ASMInstructions)
 {
     Assert(VMTokens->VMTokenCount == 3);
 
@@ -70,6 +70,7 @@ void ParsePushCommand(vm_tokens *VMTokens,
         char *OneAfterPushValue = PushValuePosition+VMStringPushValue.CurrentLength;
         char *RestOfPushConstantString = "\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
         uint32 RestOfPushConstantStringLength = 27;
+        // TODO(Marko): Check if ASMInstructions->MemorySize is large enough. 
         CopyVMString(RestOfPushConstantString,
                      RestOfPushConstantStringLength,
                      OneAfterPushValue,
@@ -79,20 +80,17 @@ void ParsePushCommand(vm_tokens *VMTokens,
 }
 
 
-vm_string ParseReturnCommand(vm_string *ASMInstructions)
+internal void ParseReturnCommand(vm_string *ASMInstructions)
 {
-    vm_string Result = {0};
 
-    return(Result);
 }
 
 
-vm_string ParseArithmeticCommand(vm_tokens *VMTokens, 
-                                 vm_string *ASMInstructions)
+internal void ParseArithmeticCommand(vm_tokens *VMTokens, 
+                                     vm_string *ASMInstructions)
 {
     Assert(VMTokens->VMTokenCount == 1);
     vm_string VMStringArithmeticCommand = VMTokens->VMTokens[0];
-    vm_string Result = {0};
     if(VMStringsAreEqual(&VMStringArithmeticCommand, "add", 3))
     {
         /* NOTE(Marko): "add" translates to:
@@ -109,36 +107,53 @@ vm_string ParseArithmeticCommand(vm_tokens *VMTokens,
 
                         Nothing depends on the input, so we can just hard code it in. 
         */
-        Result.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n";
-        Result.CurrentLength = 48;
-        Result.MemorySize = 49;
+        vm_string ArithmeticAsm;
+        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n";
+        ArithmeticAsm.CurrentLength = 48;
+        ArithmeticAsm.MemorySize = 49;
+        ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        CopyVMString(ArithmeticAsm.Contents,
+                     ArithmeticAsm.CurrentLength,
+                     ASMInstructions->Contents,
+                     ASMInstructions->CurrentLength);
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
     }
-
-    return(Result);
 }
 
 void ParseTokensToASM(vm_tokens *VMTokens,
                       vm_string *ASMInstructions)
 {
-    // TODO(Marko): Figure out if we should first examine 
-    //              VMTokens->VMTokenCount before going through the tokens as 
-    //              a preliminary filter (e.g. if VMTokens->VMTokenCount == 1, 
-    //              then check only for "add" "sub", "eq" etc)
-    // TODO(Marko): Parse "add" "push constant %d" -- this will take care of 
-    //              SimpleAdd.vm
-
     switch(VMTokens->VMTokenCount)
     {
         case 1:
         {
+            /* NOTE(Marko): Possible VM instructions of length 1:
+                                "return"
+                                "add"
+                                "sub"
+                                "neg"
+                                "eq"
+                                "get"
+                                "lt"
+                                "and"
+                                "or"
+                                "not"
+
+                            Of these, only "return" is not an arithmetic 
+                            command. 
+
+            */
             if(VMStringsAreEqual(&VMTokens->VMTokens[0], "return", 6))
             {
-                // TODO(Marko): Refactor to pass buffers into these functions
                 ParseReturnCommand(ASMInstructions);
             }
             else
             {
-                ParseArithmeticCommand(VMTokens, ASMInstructions);                
+                ParseArithmeticCommand(VMTokens, ASMInstructions);
             }
         } break;
 

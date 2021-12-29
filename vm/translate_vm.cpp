@@ -47,8 +47,6 @@ internal void TranslateLine(vm_string *VMInputString,
 void TranslateVMInstructionsToASM(vm_string *VMInputString, 
                                   vm_string *ASMOutputString)
 {
-    // TODO(Marko): Read each line until newline, then split by whitespace.
-    // TODO(Marko): Create table for commands
     // TODO(Marko): BONUS OBJECTIVE: Create error struct and pass it into 
     //                               here. Then write errors to the error 
     //                               struct as they are encountered, recording 
@@ -101,5 +99,5 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
             }
         }
     }
-
+    ASMOutputString->Contents[ASMOutputString->CurrentLength] = '\0';
 }
