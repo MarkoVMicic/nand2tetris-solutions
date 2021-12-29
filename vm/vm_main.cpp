@@ -2,6 +2,14 @@
 #include "vm_string.h"
 #include "translate_vm.h"
 
+
+void WriteVMStringToFile(vm_string *VMString, char *FileName)
+{
+    FILE *WriteFileHandle = fopen(FileName, "w");
+    fwrite(VMString->Contents, 1, VMString->CurrentLength, WriteFileHandle);
+    fclose(WriteFileHandle);
+}
+
 read_file_result ReadEntireFile(char *FileName)
 {
     read_file_result Result = {0};
@@ -105,8 +113,9 @@ int main(int argc, char **argv)
             AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
         TranslateVMInstructionsToASM(&VMInput, ASMOutputBuffer);
+        WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
+        FreeVMString(ASMOutputBuffer);
     }
-
     FreeEntireFileMemory(InputFileContents); 
 
     return(0);
