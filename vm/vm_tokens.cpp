@@ -296,7 +296,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
 internal void ParsePushCommand(vm_tokens *VMTokens, 
                                vm_string *ASMInstructions,
-                               instruction_counts InstructionCounts)
+                               instruction_counts *InstructionCounts)
 {
     Assert(VMTokens->VMTokenCount == 3);
 
@@ -1163,7 +1163,7 @@ void ParseTokensToASM(vm_tokens *VMTokens,
             }
             else if(VMStringsAreEqual(&VMTokens->VMTokens[0], "pop", 3))
             {
-                ParsePopCommand(VMTokens, ASMInstructionsm InstructionCounts);
+                ParsePopCommand(VMTokens, ASMInstructions, InstructionCounts);
             }
 
         } break;
