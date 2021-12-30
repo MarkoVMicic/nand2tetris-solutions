@@ -426,7 +426,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         */
         vm_string GtCountString = UInt32ToVMString(InstructionCounts->GtCount);
         vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_GT_",46,47};
-        vm_string SecondPart = {"\nD;JNE\n(GT_",11,12};
+        vm_string SecondPart = {"\nD;JLE\n(GT_",11,12};
         vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@GT_END_",23,24};
         vm_string FourthPart = {"\n0;JMP\n(NOT_GT_",15,16};
         vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@GT_END_",22,23};
@@ -591,7 +591,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         */
         vm_string LtCountString = UInt32ToVMString(InstructionCounts->LtCount);
         vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_LT_",46,47};
-        vm_string SecondPart = {"\nD;JNE\n(LT_",11,12};
+        vm_string SecondPart = {"\nD;JGE\n(LT_",11,12};
         vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@LT_END_",23,24};
         vm_string FourthPart = {"\n0;JMP\n(NOT_LT_",15,16};
         vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@LT_END_",22,23};
