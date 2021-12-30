@@ -1,6 +1,36 @@
 #include "vm_string.h"
 #include "vm_main.h"
 
+
+vm_string UInt32ToVMString(uint32 UInt32)
+{
+    vm_string Result;
+    uint32 N = UInt32;
+    uint32 DigitCount = 0;
+    do
+    {
+        DigitCount++;
+        N /= 10;
+    } while(N > 0);
+
+    Result.CurrentLength = DigitCount;
+    Result.MemorySize = DigitCount+1;
+    Result.Contents = (char *)malloc((DigitCount+1) * sizeof(char));
+    uint32 NumIndex = DigitCount-1;
+    do
+    {
+        Result.Contents[NumIndex] = (char)((UInt32 % 10) + '0');
+        UInt32 /= 10;
+        NumIndex--;
+
+    } while(UInt32 > 0);
+
+    Result.Contents[DigitCount] = '\0';
+
+    return Result; 
+}
+
+
 bool32 VMStringsAreEqual(vm_string *VMStringA, 
                          vm_string *VMStringB)
 {
