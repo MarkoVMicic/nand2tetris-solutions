@@ -100,7 +100,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
             LengthRemaining -= SecondPart.CurrentLength;
         }
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-        InstructionCounts->PopLocalCount++
+        InstructionCounts->PopArgCount++
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &LocalString))
     {
