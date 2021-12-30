@@ -114,6 +114,9 @@ int main(int argc, char **argv)
 
         instruction_counts InstructionCounts = {0};
 
+        // TODO(Marko): Allocate ASMInstructions vm_string once here and free here. This prevents multiple calls to malloc() and free() for a piece of memory that is easily reusable. 
+        // TODO(Marko): Allocate VMTokens once here and free here. This prevents multiple calls to malloc() and free() for a piece of memory that is easily reusable. 
+
         TranslateVMInstructionsToASM(&VMInput, 
                                      ASMOutputBuffer, 
                                      &InstructionCounts);
