@@ -55,7 +55,23 @@ struct read_file_result
 struct instruction_counts
 {
     // NOTE(Marko): Push counts
+    uint32 PushArgumentCount;
+    uint32 PushLocalCount;
+    uint32 PushStaticCount;
     uint32 PushConstantCount;
+    uint32 PushThisCount;
+    uint32 PushThatCount;
+    uint32 PushPointerCount;
+    uint32 PushTempCount;
+
+    // NOTE(Marko): Pop Counts
+    uint32 PopArgumentCount;
+    uint32 PopLocalCount;
+    uint32 PopStaticCount;
+    uint32 PopThisCount;
+    uint32 PopThatCount;
+    uint32 PopPointerCount;
+    uint32 PopTempCount;
     
     // NOTE(Marko): Arithmetic Command counts
     uint32 AddCount;

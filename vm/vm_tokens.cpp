@@ -30,6 +30,114 @@ vm_tokens *AllocateVMTokens(uint32 TokenCount, uint32 TokenVMStringSize)
 }
 
 
+internal void ParsePopCommand(vm_tokens *VMTokens,
+                              vm_string *ASMInstructions)
+{
+    Assert(VMTokens->VMTokenCount == 3);
+
+    vm_string VMStringPopSegment = VMTokens->VMTokens[1];
+    vm_string VMStringPopValue = VMTokens->VMTokens[2];
+
+    vm_string ArgumentString = {"argument",8,9};
+    vm_string LocalString = {"local",5,6};
+    vm_string StaticString = {"static",6,7};
+    vm_string ConstantString = {"constant",8,9};
+    vm_string ThisString = {"this",4,5};
+    vm_string ThatString = {"that",4,5};
+    vm_string PointerString = {"pointer",7,8};
+    vm_string TempString = {"temp",4,5};
+
+    if(VMStringsAreEqual(&VMStringPopSegment, &ArgumentString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &LocalString))
+    {
+        /* NOTE(Marko): "pop local X" translates to
+                            @LCL
+                            D=M
+                            @X
+                            D=D+A
+                            @LCL_POP
+                            M=D
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @LCL_POP
+                            A=M
+                            M=D
+
+                        Excluding X (which is the specified local section) there are 65 characters.  
+        */
+        ASMInstructions->CurrentLength = 65 + VMStringPopValue.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        vm_string FirstPart = {"@LCL\nD=M\n@",10,11};
+        vm_string SecondPart = {"\nD=D+A\n@LCL_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@LCL_POP\nA=M\nM=D",55,56};
+
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(VMStringPopValue.Contents,
+                         VMStringPopValue.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPopValue.CurrentLength;
+            LengthRemaining -= VMStringPopValue.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PopLocalCount++
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &StaticString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &ConstantString))
+    {
+        // NOTE(Marko): "pop constant i" is not valid. 
+        InvalidCodePath;
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &ThisString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &ThatString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &PointerString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPopSegment, &TempString))
+    {
+        
+    }
+    else
+    {
+        InvalidCodePath;
+    }
+}                              
+
+
 internal void ParsePushCommand(vm_tokens *VMTokens, 
                                vm_string *ASMInstructions)
 {
@@ -38,7 +146,27 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     vm_string VMStringPushSegment = VMTokens->VMTokens[1];
     vm_string VMStringPushValue = VMTokens->VMTokens[2];
 
-    if(VMStringsAreEqual(&VMStringPushSegment, "constant", 8))
+    vm_string ArgumentString = {"argument",8,9};
+    vm_string LocalString = {"local",5,6};
+    vm_string StaticString = {"static",6,7};
+    vm_string ConstantString = {"constant",8,9};
+    vm_string ThisString = {"this",4,5};
+    vm_string ThatString = {"that",4,5};
+    vm_string PointerString = {"pointer",7,8};
+    vm_string TempString = {"temp",4,5};
+    if(VMStringsAreEqual(&VMStringPushSegment, &ArgumentString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &LocalString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &StaticString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &ConstantString))
     {
         /* NOTE(Marko): "push constant X" translates to
                             @X
@@ -77,6 +205,27 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
                      ASMInstructions->CurrentLength-1-VMStringPushValue.CurrentLength);
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
     }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &ThisString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &ThatString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &PointerString))
+    {
+        
+    }
+    else if(VMStringsAreEqual(&VMStringPushSegment, &TempString))
+    {
+        
+    }
+    else
+    {
+        InvalidCodePath;
+    }
+
 }
 
 
@@ -853,6 +1002,10 @@ void ParseTokensToASM(vm_tokens *VMTokens,
             if(VMStringsAreEqual(&VMTokens->VMTokens[0], "push", 4))
             {
                 ParsePushCommand(VMTokens, ASMInstructions);
+            }
+            else if(VMStringsAreEqual(&VMTokens->VMTokens[0], "pop", 3))
+            {
+                ParsePopCommand(VMTokens, ASMInstructions);
             }
 
         } break;
