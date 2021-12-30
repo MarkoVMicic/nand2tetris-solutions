@@ -25,7 +25,8 @@ internal void WriteToASMOutput(vm_string *ASMInstructions,
 internal void TranslateLine(vm_string *VMInputString, 
                             uint32 *InputIndex, 
                             vm_string *ASMOutputString, 
-                            uint32 *OutputIndex)
+                            uint32 *OutputIndex,
+                            instruction_counts *InstructionCounts)
 {
 
     vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
@@ -34,7 +35,8 @@ internal void TranslateLine(vm_string *VMInputString,
 
     vm_string *ASMInstructions = 
         AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
-    ParseTokensToASM(VMTokens, ASMInstructions);
+
+    ParseTokensToASM(VMTokens, ASMInstructions, InstructionCounts);
 
     WriteToASMOutput(ASMInstructions, ASMOutputString, OutputIndex);
 
@@ -45,7 +47,8 @@ internal void TranslateLine(vm_string *VMInputString,
 
 
 void TranslateVMInstructionsToASM(vm_string *VMInputString, 
-                                  vm_string *ASMOutputString)
+                                  vm_string *ASMOutputString,
+                                  instruction_counts *InstructionCounts)
 {
     // TODO(Marko): BONUS OBJECTIVE: Create error struct and pass it into 
     //                               here. Then write errors to the error 
@@ -95,7 +98,8 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                 TranslateLine(VMInputString, 
                               &InputIndex, 
                               ASMOutputString, 
-                              &OutputIndex);
+                              &OutputIndex,
+                              InstructionCounts);
             }
         }
     }

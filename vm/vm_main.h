@@ -49,6 +49,26 @@ struct read_file_result
     uint32 Length;
 };
 
+//
+// NOTE(Marko): InstructionCounts
+//
+struct instruction_counts
+{
+    // NOTE(Marko): Push counts
+    uint32 PushConstantCount;
+    
+    // NOTE(Marko): Arithmetic Command counts
+    uint32 AddCount;
+    uint32 SubCount;
+    uint32 NegCount;
+    uint32 EqCount;
+    uint32 GtCount;
+    uint32 LtCount;
+    uint32 AndCount;
+    uint32 OrCount;
+    uint32 NotCount;
+};
+
 
 
 #define VM_MAIN_H

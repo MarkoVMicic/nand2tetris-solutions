@@ -5,7 +5,8 @@
 
 
 void TranslateVMInstructionsToASM(vm_string *VMInputString, 
-                                  vm_string *ASMOutputString);
+                                  vm_string *ASMOutputString,
+                                  instruction_counts *InstructionCounts);
 
 #define TRANSLATE_VM_H
 #endif

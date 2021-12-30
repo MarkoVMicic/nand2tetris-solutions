@@ -22,7 +22,8 @@ vm_tokens *AllocateVMTokens(uint32 TokenCount,
                             uint32 TokenVMStringSize);
 
 void ParseTokensToASM(vm_tokens *VMTokens,
-                      vm_string *ASMInstructions);
+                      vm_string *ASMInstructions,
+                      instruction_counts *InstructionCounts);
 
 void TokenizeLine(vm_string *VMInputString,
                   uint32 *InputIndex,

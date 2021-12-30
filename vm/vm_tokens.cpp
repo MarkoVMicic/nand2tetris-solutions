@@ -87,11 +87,34 @@ internal void ParseReturnCommand(vm_string *ASMInstructions)
 
 
 internal void ParseArithmeticCommand(vm_tokens *VMTokens, 
-                                     vm_string *ASMInstructions)
+                                     vm_string *ASMInstructions,
+                                     instruction_counts *InstructionCounts)
 {
     Assert(VMTokens->VMTokenCount == 1);
     vm_string VMStringArithmeticCommand = VMTokens->VMTokens[0];
-    if(VMStringsAreEqual(&VMStringArithmeticCommand, "add", 3))
+    /* NOTE(Marko): Possible arithmetic commands:
+                                "add"
+                                "sub"
+                                "neg"
+                                "eq"
+                                "gt"
+                                "lt"
+                                "and"
+                                "or"
+                                "not"
+            */
+    vm_string AddString = {"add", 3, 4};
+    vm_string SubString = {"sub", 3, 4};
+    vm_string NegString = {"neg", 3, 4};
+    vm_string EqString = {"eq", 2, 3};
+    vm_string GtString = {"gt", 2, 3};
+    vm_string LtString = {"lt", 2, 3};
+    vm_string AndString = {"and", 3, 4};
+    vm_string OrString = {"or", 2, 3};
+    vm_string NotString = {"not", 3, 4};
+
+    vm_string ArithmeticAsm;
+    if(VMStringsAreEqual(&VMStringArithmeticCommand, &AddString))
     {
         /* NOTE(Marko): "add" translates to:
                             @SP
@@ -107,7 +130,6 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
 
                         Nothing depends on the input, so we can just hard code it in. 
         */
-        vm_string ArithmeticAsm;
         ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n";
         ArithmeticAsm.CurrentLength = 48;
         ArithmeticAsm.MemorySize = 49;
@@ -121,6 +143,35 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                      ASMInstructions->Contents,
                      ASMInstructions->CurrentLength);
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+
+        InstructionCounts->AddCount++;
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &SubString))
+    {
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &NegString))
+    {      
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &EqString))
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &GtString))
+    {
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &LtString))
+    {
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &AndString))
+    {
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &OrString))
+    {
+    }
+    else if(VMStringsAreEqual(&VMStringArithmeticCommand, &NotString))
+    {
+    }
+    else
+    {
+        InvalidCodePath;
     }
 }
 

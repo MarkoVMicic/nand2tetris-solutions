@@ -112,7 +112,11 @@ int main(int argc, char **argv)
         vm_string *ASMOutputBuffer = 
             AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
-        TranslateVMInstructionsToASM(&VMInput, ASMOutputBuffer);
+        instruction_counts InstructionCounts = {0};
+
+        TranslateVMInstructionsToASM(&VMInput, 
+                                     ASMOutputBuffer, 
+                                     &InstructionCounts);
         WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
         FreeVMString(ASMOutputBuffer);
     }
