@@ -704,6 +704,32 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &NotString))
     {
+        // NOTE(Marko): Bitwise NOT of value at top of stack.
+
+        /* NOTE(Marko): "neg" translates to:
+                            @SP
+                            M=M-1
+                            A=M
+                            M=!M
+                            @SP
+                            M=M+1
+        */
+        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nM=!M\n@SP\nM=M+1\n";
+        ArithmeticAsm.CurrentLength = 29;
+        ArithmeticAsm.MemorySize = 30;
+
+        ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        CopyVMString(ArithmeticAsm.Contents,
+                     ArithmeticAsm.CurrentLength,
+                     ASMInstructions->Contents,
+                     ASMInstructions->CurrentLength);
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+
+        InstructionCounts->NotCount++;
     }
     else
     {
