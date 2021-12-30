@@ -226,6 +226,10 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &EqString))
     {
+
+        // NOTE(Marko): Outputs: 0000000000000000 for false (aka 0)
+        //                       1111111111111111 for true (aka -1)
+
         /* NOTE(Marko): "eq" translates to
                             @SP
                             M=M-1
@@ -240,7 +244,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             (EQUAL_X)
                             @SP
                             A=M
-                            M=1
+                            M=-1
                             @EQUAL_END_X
                             0;JMP
                             (NOT_EQUAL_X)
@@ -254,13 +258,13 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             M=M+1
 
                         Excluding the X's (which is the EqCount), there are 
-                        161 characters.
+                        162 characters.
                         There are 6 slots in which to place the EqCount. 
         */
         vm_string EqCountString = UInt32ToVMString(InstructionCounts->EqCount);
         vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_EQUAL_",49,50};
         vm_string SecondPart = {"\nD;JNE\n(EQUAL_",14,15};
-        vm_string ThirdPart = {")\n@SP\nA=M\nM=1\n@EQUAL_END_",25,26};
+        vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@EQUAL_END_",26,27};
         vm_string FourthPart = {"\n0;JMP\n(NOT_EQUAL_",18,19};
         vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@EQUAL_END_",25,26};
         vm_string SixthPart = {"\n0;JMP\n(EQUAL_END_",18,19};
@@ -384,6 +388,9 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         //     SP ----->  |    258     |     ???      |
         //                |---------------------------|
 
+        // NOTE(Marko): Outputs: 0000000000000000 for false (aka 0)
+        //                       1111111111111111 for true (aka -1)
+
         /*
             NOTE(Marko): "gt" translates to
                             @SP
@@ -399,7 +406,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             (GT_X)
                             @SP
                             A=M
-                            M=1
+                            M=-1
                             @GT_END_X
                             0;JMP
                             (NOT_GT_X)
@@ -413,14 +420,14 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             M=M+1
 
                         Excluding the X's (which is the GtCount), there are 
-                        143 characters.
+                        144 characters.
                         There are 6 slots in which to place the 
                         GtCount.        
         */
         vm_string GtCountString = UInt32ToVMString(InstructionCounts->GtCount);
         vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_GT_",46,47};
         vm_string SecondPart = {"\nD;JNE\n(GT_",11,12};
-        vm_string ThirdPart = {")\n@SP\nA=M\nM=1\n@GT_END_",22,23};
+        vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@GT_END_",23,24};
         vm_string FourthPart = {"\n0;JMP\n(NOT_GT_",15,16};
         vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@GT_END_",22,23};
         vm_string SixthPart = {"\n0;JMP\n(GT_END_",15,16};
@@ -546,6 +553,9 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         //     SP ----->  |    258     |     ???      |
         //                |---------------------------|
 
+        // NOTE(Marko): Outputs: 0000000000000000 for false (aka 0)
+        //                       1111111111111111 for true (aka -1)
+
         /*
             NOTE(Marko): "lt" translates to
                             @SP
@@ -561,7 +571,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             (LT_X)
                             @SP
                             A=M
-                            M=1
+                            M=-1
                             @LT_END_X
                             0;JMP
                             (NOT_LT_X)
@@ -575,14 +585,14 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             M=M+1
 
                         Excluding the X's (which is the LtCount), there are 
-                        143 characters.
+                        144 characters.
                         There are 6 slots in which to place the 
                         LtCount.        
         */
         vm_string LtCountString = UInt32ToVMString(InstructionCounts->LtCount);
         vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_LT_",46,47};
         vm_string SecondPart = {"\nD;JNE\n(LT_",11,12};
-        vm_string ThirdPart = {")\n@SP\nA=M\nM=1\n@LT_END_",22,23};
+        vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@LT_END_",23,24};
         vm_string FourthPart = {"\n0;JMP\n(NOT_LT_",15,16};
         vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@LT_END_",22,23};
         vm_string SixthPart = {"\n0;JMP\n(LT_END_",15,16};
