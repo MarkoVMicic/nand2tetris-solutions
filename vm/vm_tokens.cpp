@@ -153,6 +153,150 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
     {      
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &EqString))
+    {
+        /* NOTE(Marko): "eq" translates to
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M-D
+                            @NOT_EQUAL_X
+                            D;JNE
+                            (EQUAL_X)
+                            @SP
+                            A=M
+                            M=1
+                            @EQ_END_X
+                            0;JMP
+                            (NOT_EQUAL_X)
+                            @SP
+                            A=M
+                            M=0
+                            @EQ_END_X
+                            0;JMP
+                            (EQUAL_END_X)
+                            @SP
+                            M=M+1
+
+                        Excluding the X's (which is the EqCount), there are 
+                        155 characters.
+                        There are 6 slots in which to place the EqCount. 
+        */
+        vm_string EqCountString = UInt32ToVMString(InstructionCounts->EqCount);
+        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_EQUAL_",49,50};
+        vm_string SecondPart = {"\nD;JNE\n(EQUAL_",14,15};
+        vm_string ThirdPart = {")\n@SP\nA=M\nM=1\n@EQ_END_",22,23};
+        vm_string FourthPart = {"\n0;JMP\n(NOT_EQUAL_",18,19};
+        vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@EQ_END_",22,23};
+        vm_string SixthPart = {"\n0;JMP\n(EQUAL_END_",18,19};
+        vm_string SeventhPart = {")\n@SP\nM=M+1\n",12,13};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            ThirdPart.CurrentLength +
+            FourthPart.CurrentLength +
+            FifthPart.CurrentLength +
+            SixthPart.CurrentLength +
+            SeventhPart.CurrentLength +
+            6*EqCountString.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+
+        char *PasteCharLocation = ASMInstructions->Contents;
+        uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+        CopyVMString(FirstPart.Contents,
+                     FirstPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FirstPart.CurrentLength;
+        LengthRemaining -= FirstPart.CurrentLength;
+        CopyVMString(EqCountString.Contents,
+                     EqCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EqCountString.CurrentLength;
+        LengthRemaining -= EqCountString.CurrentLength;
+
+        CopyVMString(SecondPart.Contents,
+                     SecondPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SecondPart.CurrentLength;
+        LengthRemaining -= SecondPart.CurrentLength;
+        CopyVMString(EqCountString.Contents,
+                     EqCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EqCountString.CurrentLength;
+        LengthRemaining -= EqCountString.CurrentLength;
+
+        CopyVMString(ThirdPart.Contents,
+                     ThirdPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ThirdPart.CurrentLength;
+        LengthRemaining -= ThirdPart.CurrentLength;
+        CopyVMString(EqCountString.Contents,
+                     EqCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EqCountString.CurrentLength;
+        LengthRemaining -= EqCountString.CurrentLength;
+
+        CopyVMString(FourthPart.Contents,
+                     FourthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FourthPart.CurrentLength;
+        LengthRemaining -= FourthPart.CurrentLength;
+        CopyVMString(EqCountString.Contents,
+                     EqCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EqCountString.CurrentLength;
+        LengthRemaining -= EqCountString.CurrentLength;
+
+        CopyVMString(FifthPart.Contents,
+                     FifthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FifthPart.CurrentLength;
+        LengthRemaining -= FifthPart.CurrentLength;
+        CopyVMString(EqCountString.Contents,
+                     EqCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EqCountString.CurrentLength;
+        LengthRemaining -= EqCountString.CurrentLength;
+
+        CopyVMString(SixthPart.Contents,
+                     SixthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SixthPart.CurrentLength;
+        LengthRemaining -= SixthPart.CurrentLength;
+        CopyVMString(EqCountString.Contents,
+                     EqCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EqCountString.CurrentLength;
+        LengthRemaining -= EqCountString.CurrentLength;
+
+        CopyVMString(SeventhPart.Contents,
+                     SeventhPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+
+        InstructionCounts->EqCount++;
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &GtString))
     {
@@ -176,7 +320,8 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
 }
 
 void ParseTokensToASM(vm_tokens *VMTokens,
-                      vm_string *ASMInstructions)
+                      vm_string *ASMInstructions,
+                      instruction_counts *InstructionCounts)
 {
     switch(VMTokens->VMTokenCount)
     {
@@ -204,7 +349,9 @@ void ParseTokensToASM(vm_tokens *VMTokens,
             }
             else
             {
-                ParseArithmeticCommand(VMTokens, ASMInstructions);
+                ParseArithmeticCommand(VMTokens, 
+                                       ASMInstructions, 
+                                       InstructionCounts);
             }
         } break;
 
