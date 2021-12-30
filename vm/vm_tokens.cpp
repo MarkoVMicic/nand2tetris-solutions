@@ -31,7 +31,8 @@ vm_tokens *AllocateVMTokens(uint32 TokenCount, uint32 TokenVMStringSize)
 
 
 internal void ParsePopCommand(vm_tokens *VMTokens,
-                              vm_string *ASMInstructions)
+                              vm_string *ASMInstructions,
+                              instruction_counts *InstructionCounts)
 {
     Assert(VMTokens->VMTokenCount == 3);
 
@@ -47,6 +48,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     vm_string PointerString = {"pointer",7,8};
     vm_string TempString = {"temp",4,5};
 
+    // TODO(Marko): Bounds checking to make sure that VMStringPopValue corresponds to a valid address (i.e. does not go out of bounds)
     if(VMStringsAreEqual(&VMStringPopSegment, &ArgumentString))
     {
         /* NOTE(Marko): "pop argument X" translates to
@@ -100,7 +102,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
             LengthRemaining -= SecondPart.CurrentLength;
         }
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-        InstructionCounts->PopArgCount++
+        InstructionCounts->PopArgumentCount++;
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &LocalString))
     {
@@ -155,7 +157,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
             LengthRemaining -= SecondPart.CurrentLength;
         }
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-        InstructionCounts->PopLocalCount++
+        InstructionCounts->PopLocalCount++;
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &StaticString))
     {
@@ -219,7 +221,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
             LengthRemaining -= SecondPart.CurrentLength;
         }
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-        InstructionCounts->PopThisCount++
+        InstructionCounts->PopThisCount++;
         
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &ThatString))
@@ -275,8 +277,7 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
             LengthRemaining -= SecondPart.CurrentLength;
         }
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-        InstructionCounts->PopThatCount++
-        
+        InstructionCounts->PopThatCount++;        
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &PointerString))
     {
@@ -294,7 +295,8 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
 
 internal void ParsePushCommand(vm_tokens *VMTokens, 
-                               vm_string *ASMInstructions)
+                               vm_string *ASMInstructions,
+                               instruction_counts InstructionCounts)
 {
     Assert(VMTokens->VMTokenCount == 3);
 
@@ -359,6 +361,7 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
                      OneAfterPushValue,
                      ASMInstructions->CurrentLength-1-VMStringPushValue.CurrentLength);
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PushConstantCount++;
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &ThisString))
     {
@@ -1156,11 +1159,11 @@ void ParseTokensToASM(vm_tokens *VMTokens,
         {
             if(VMStringsAreEqual(&VMTokens->VMTokens[0], "push", 4))
             {
-                ParsePushCommand(VMTokens, ASMInstructions);
+                ParsePushCommand(VMTokens, ASMInstructions, InstructionCounts);
             }
             else if(VMStringsAreEqual(&VMTokens->VMTokens[0], "pop", 3))
             {
-                ParsePopCommand(VMTokens, ASMInstructions);
+                ParsePopCommand(VMTokens, ASMInstructionsm InstructionCounts);
             }
 
         } break;
