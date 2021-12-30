@@ -192,7 +192,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
 
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &NegString))
-    {      
+    {
         // NOTE(Marko): Negates value at top of stack.
 
         /* NOTE(Marko): "neg" translates to:
@@ -698,6 +698,36 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &AndString))
     {
+        /* NOTE(Marko): "and" translates to:
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @SP
+                            M=M-1
+                            A=M
+                            M=M&D
+                            @SP
+                            M=M+1
+
+                        Nothing depends on the input, so we can just hard code 
+                        it in. 
+        */
+        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M&D\n@SP\nM=M+1\n";
+        ArithmeticAsm.CurrentLength = 48;
+        ArithmeticAsm.MemorySize = 49;
+        ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        CopyVMString(ArithmeticAsm.Contents,
+                     ArithmeticAsm.CurrentLength,
+                     ASMInstructions->Contents,
+                     ASMInstructions->CurrentLength);
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+
+        InstructionCounts->AndCount++;
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &OrString))
     {
