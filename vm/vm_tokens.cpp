@@ -168,6 +168,58 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &ThisString))
     {
+        /* NOTE(Marko): "pop this X" translates to
+                            @THIS
+                            D=M
+                            @X
+                            D=D+A
+                            @THIS_POP
+                            M=D
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @THIS_POP
+                            A=M
+                            M=D
+
+                        Excluding X (which is the specified local section) there are 68 characters.  
+        */
+        ASMInstructions->CurrentLength = 65 + VMStringPopValue.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        vm_string FirstPart = {"@THIS\nD=M\n@",11,12};
+        vm_string SecondPart = {"\nD=D+A\n@THIS_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THIS_POP\nA=M\nM=D",57,58};
+
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(VMStringPopValue.Contents,
+                         VMStringPopValue.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPopValue.CurrentLength;
+            LengthRemaining -= VMStringPopValue.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PopThisCount++
         
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &ThatString))
