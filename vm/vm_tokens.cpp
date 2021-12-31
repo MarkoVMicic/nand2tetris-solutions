@@ -1,7 +1,8 @@
 #include "vm_tokens.h"
 #include "vm_string.h"
 
-
+// TODO(Marko): Fix some of the Pop commands so that they do not require any 
+//              assembly storage! 
 void FreeVMTokens(vm_tokens *VMTokens)
 {
     for(uint32 TokenIndex = 0;
