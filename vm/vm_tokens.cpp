@@ -665,7 +665,57 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &TempString))
     {
-        
+        /* NOTE(Marko): push temp X translates to:
+                            @X
+                            D=M
+                            @SP
+                            A=M
+                            M=D
+                            @SP
+                            M=M+1
+
+                        Where X is TEMP_ADDRESS_START + VMStringPopValue, and 
+                        it must not exceed TEMP_ADDRESS_END.
+                        Excluding X, there are 28 characters. 
+        */
+        uint32 PushAddressValue = 
+            TEMP_ADDRESS_START + VMStringToUInt32(&VMStringPushValue);
+        if(PushAddressValue > TEMP_ADDRESS_END)
+        {
+            // NOTE(Marko): PushAddressValue is not valid.
+            InvalidCodePath;
+        }
+        vm_string VMStringPushAddress = UInt32ToVMString(PushAddressValue);
+
+        vm_string FirstPart = {"@",1,2};
+        vm_string SecondPart = {"\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",27,28};
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(VMStringPushAddress.Contents,
+                         VMStringPushAddress.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPushAddress.CurrentLength;
+            LengthRemaining -= VMStringPushAddress.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PushTempCount++;   
     }
     else
     {
