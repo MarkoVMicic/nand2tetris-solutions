@@ -329,7 +329,57 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     vm_string TempString = {"temp",4,5};
     if(VMStringsAreEqual(&VMStringPushSegment, &ArgumentString))
     {
-        
+                /* NOTE(Marko): "push argument X" translates to
+                            @ARG
+                            D=M
+                            @X
+                            A=D+A
+                            D=M
+                            @SP
+                            A=M
+                            M=D
+                            @SP
+                            M=M+1
+
+                        43 characters excluding X (where X is the address number)
+        */
+        vm_string FirstPart = {"@ARG\nD=M\n@",10,11};
+        vm_string SecondPart = {"\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",33,34};
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength + 
+            SecondPart.CurrentLength + 
+            VMStringPushValue.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(VMStringPushValue.Contents,
+                         VMStringPushValue.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPushValue.CurrentLength;
+            LengthRemaining -= VMStringPushValue.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PushArgumentCount++;       
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &LocalString))
     {
