@@ -68,13 +68,17 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 65 characters.  
         */
-        ASMInstructions->CurrentLength = 65 + VMStringPopValue.CurrentLength;
+        vm_string FirstPart = {"@ARG\nD=M\n@",10,11};
+        vm_string SecondPart = {"\nD=D+A\n@ARG_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@ARG_POP\nA=M\nM=D\n",55,56};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            1*VMStringPopValue.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
             GrowVMString(ASMInstructions);
         }
-        vm_string FirstPart = {"@ARG\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nD=D+A\n@ARG_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@ARG_POP\nA=M\nM=D",55,56};
 
         {
             char *PasteCharLocation = ASMInstructions->Contents;
@@ -123,13 +127,17 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 65 characters.  
         */
-        ASMInstructions->CurrentLength = 65 + VMStringPopValue.CurrentLength;
+        vm_string FirstPart = {"@LCL\nD=M\n@",10,11};
+        vm_string SecondPart = {"\nD=D+A\n@LCL_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@LCL_POP\nA=M\nM=D\n",55,56};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength + 
+            SecondPart.CurrentLength + 
+            1*VMStringPopValue.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
             GrowVMString(ASMInstructions);
         }
-        vm_string FirstPart = {"@LCL\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nD=D+A\n@LCL_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@LCL_POP\nA=M\nM=D",55,56};
 
         {
             char *PasteCharLocation = ASMInstructions->Contents;
@@ -187,13 +195,17 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 68 characters.  
         */
-        ASMInstructions->CurrentLength = 68 + VMStringPopValue.CurrentLength;
+        
+        vm_string FirstPart = {"@THIS\nD=M\n@",11,12};
+        vm_string SecondPart = {"\nD=D+A\n@THIS_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THIS_POP\nA=M\nM=D\n",57,58};
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            1*VMStringPopValue.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
             GrowVMString(ASMInstructions);
         }
-        vm_string FirstPart = {"@THIS\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nD=D+A\n@THIS_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THIS_POP\nA=M\nM=D",57,58};
 
         {
             char *PasteCharLocation = ASMInstructions->Contents;
@@ -243,13 +255,17 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 68 characters.  
         */
-        ASMInstructions->CurrentLength = 68 + VMStringPopValue.CurrentLength;
+        vm_string FirstPart = {"@THAT\nD=M\n@",11,12};
+        vm_string SecondPart = {"\nD=D+A\n@THAT_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THAT_POP\nA=M\nM=D\n",57,58};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            1*VMStringPopValue.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
             GrowVMString(ASMInstructions);
         }
-        vm_string FirstPart = {"@THAT\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nD=D+A\n@THAT_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THAT_POP\nA=M\nM=D",57,58};
 
         {
             char *PasteCharLocation = ASMInstructions->Contents;
