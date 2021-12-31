@@ -16,6 +16,7 @@ struct vm_string
     uint32 MemorySize;  
 };
 
+uint32 VMStringToUInt32(vm_string *VMString);
 
 vm_string UInt32ToVMString(uint32 UInt32);
 

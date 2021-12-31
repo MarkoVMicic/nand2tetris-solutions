@@ -301,7 +301,66 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &TempString))
     {
-        
+        /* NOTE(Marko): "pop temp X" translates to
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @X
+                            M=D
+
+                        Where X is TEMP_ADDRESS_START + VMStringPopValue, and 
+                        it must not exceed TEMP_ADDRESS_END
+                        Excluding X, it has 24 characters. 
+        */
+        uint32 PopAddressValue = 
+            TEMP_ADDRESS_START + VMStringToUInt32(&VMStringPopValue);
+        if(PopAddressValue > TEMP_ADDRESS_END)
+        {
+            // NOTE(Marko): PopAddressValue is not valid.
+            InvalidCodePath;
+        }
+        vm_string VMStringPopAddress = UInt32ToVMString(PopAddressValue);
+
+        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@",19,20};
+        vm_string SecondPart = {"\nM=D\n",5,6};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            VMStringPopAddress.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(VMStringPopAddress.Contents,
+                         VMStringPopAddress.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPopAddress.CurrentLength;
+            LengthRemaining -= VMStringPopAddress.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PopTempCount++;   
     }
     else
     {

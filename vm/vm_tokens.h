@@ -7,6 +7,9 @@
 #define WHITESPACE ' '
 #define TAB '\t'
 
+#define TEMP_ADDRESS_START 5
+#define TEMP_ADDRESS_END 12
+
 // TODO(Marko): Actually check that 3 is indeed the maximum token amount. 
 #define MAX_VM_TOKEN_COUNT 3
 
@@ -15,6 +18,7 @@ struct vm_tokens
     vm_string *VMTokens;
     uint32 VMTokenCount;
 };
+
 
 void FreeVMTokens(vm_tokens *VMTokens);
 

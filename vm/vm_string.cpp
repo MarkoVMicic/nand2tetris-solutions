@@ -2,6 +2,88 @@
 #include "vm_main.h"
 
 
+inline bool32 IsCharNumber(char Char)
+{
+    bool32 Result = ((Char == '0') ||
+                     (Char == '1') ||
+                     (Char == '2') ||
+                     (Char == '3') ||
+                     (Char == '4') ||
+                     (Char == '5') ||
+                     (Char == '6') ||
+                     (Char == '7') ||
+                     (Char == '8') ||
+                     (Char == '9'));
+
+    return(Result);
+}
+
+
+// TODO(Marko): Find a place to put this Pow function
+// TODO(Marko): Can make this a lot better using square and multiply algorithm 
+//              on the bits than this multiply but it's probably not that 
+//              important
+inline uint32 Pow(uint32 Base, uint32 Exponent)
+{
+    uint32 Result = 1;
+    if(Base == 0 && Exponent == 0)
+    {
+        // NOTE(Marko): This is undefined, we shouldn't be calling into this 
+        //              function like this! 
+        InvalidCodePath;
+    }
+    else if(Base == 0)
+    {
+        Result = 0;
+    }
+    else if(Exponent == 0)
+    {
+        Result = 1;
+    }
+    else if(Exponent == 1)
+    {
+        Result = Base;
+    }
+    else if(Exponent == 2)
+    {
+        Result = Base*Base;
+    }  
+    else if(Exponent == 3)
+    {
+        Result = Base*Base*Base;
+    }  
+    else if(Exponent == 4)
+    {
+        Result = Base*Base*Base*Base;
+    }      
+    else
+    {
+        for(uint32 i = 0; i < Exponent; i++)
+        {
+            Result *= Base;
+        }
+    }
+
+    return(Result);
+}
+
+
+uint32 VMStringToUInt32(vm_string *VMString)
+{
+    uint32 Result = 0;
+    for(uint32 Index = 0; Index < VMString->CurrentLength; Index++)
+    {
+        if(!IsCharNumber(VMString->Contents[Index]))
+        {
+            InvalidCodePath;
+        }
+        Result += (uint32)(VMString->Contents[Index] -'0') * 
+                  Pow(10,(VMString->CurrentLength-1) - Index);
+    }
+
+    return(Result);
+}
+
 vm_string UInt32ToVMString(uint32 UInt32)
 {
     vm_string Result;
