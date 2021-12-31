@@ -67,7 +67,6 @@ inline uint32 Pow(uint32 Base, uint32 Exponent)
     return(Result);
 }
 
-
 uint32 VMStringToUInt32(vm_string *VMString)
 {
     uint32 Result = 0;

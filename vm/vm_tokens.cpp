@@ -689,6 +689,15 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
         vm_string FirstPart = {"@",1,2};
         vm_string SecondPart = {"\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",27,28};
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength + 
+            SecondPart.CurrentLength + 
+            VMStringPushAddress.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+
         {
             char *PasteCharLocation = ASMInstructions->Contents;
             uint32 LengthRemaining = ASMInstructions->CurrentLength;
