@@ -1,8 +1,6 @@
 #include "vm_tokens.h"
 #include "vm_string.h"
 
-// TODO(Marko): Fix some of the Pop commands so that they do not require any 
-//              assembly storage! 
 void FreeVMTokens(vm_tokens *VMTokens)
 {
     for(uint32 TokenIndex = 0;
@@ -57,20 +55,20 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
                             D=M
                             @X
                             D=D+A
-                            @ARG_POP
+                            @R13
                             M=D
                             @SP
                             M=M-1
                             A=M
                             D=M
-                            @ARG_POP
+                            @R13
                             A=M
                             M=D
 
-                        Excluding X (which is the specified local section) there are 65 characters.  
+                        Excluding X (which is the specified local section) there are 57 characters.  
         */
         vm_string FirstPart = {"@ARG\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nD=D+A\n@ARG_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@ARG_POP\nA=M\nM=D\n",55,56};
+        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -116,20 +114,20 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
                             D=M
                             @X
                             D=D+A
-                            @LCL_POP
+                            @R13
                             M=D
                             @SP
                             M=M-1
                             A=M
                             D=M
-                            @LCL_POP
+                            @R13
                             A=M
                             M=D
 
-                        Excluding X (which is the specified local section) there are 65 characters.  
+                        Excluding X (which is the specified local section) there are 57 characters.  
         */
         vm_string FirstPart = {"@LCL\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nD=D+A\n@LCL_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@LCL_POP\nA=M\nM=D\n",55,56};
+        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
@@ -184,21 +182,21 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
                             D=M
                             @X
                             D=D+A
-                            @THIS_POP
+                            @R13
                             M=D
                             @SP
                             M=M-1
                             A=M
                             D=M
-                            @THIS_POP
+                            @R13
                             A=M
                             M=D
 
-                        Excluding X (which is the specified local section) there are 68 characters.  
+                        Excluding X (which is the specified local section) there are 58 characters.  
         */
         
         vm_string FirstPart = {"@THIS\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nD=D+A\n@THIS_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THIS_POP\nA=M\nM=D\n",57,58};
+        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
             SecondPart.CurrentLength +
@@ -244,20 +242,20 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
                             D=M
                             @X
                             D=D+A
-                            @THAT_POP
+                            @R13
                             M=D
                             @SP
                             M=M-1
                             A=M
                             D=M
-                            @THAT_POP
+                            @R13
                             A=M
                             M=D
 
-                        Excluding X (which is the specified local section) there are 68 characters.  
+                        Excluding X (which is the specified local section) there are 58 characters.  
         */
         vm_string FirstPart = {"@THAT\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nD=D+A\n@THAT_POP\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@THAT_POP\nA=M\nM=D\n",57,58};
+        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
