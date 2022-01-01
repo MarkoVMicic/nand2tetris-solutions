@@ -241,7 +241,8 @@ vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName)
     //              extract "MyVmProgram.vm"
 
     // NOTE(Marko): Check filename extension.
-    if(InputFileName[InputFileNameLength-2] != 'v' ||
+    if(InputFileName[InputFileNameLength-3] != '.' ||
+       InputFileName[InputFileNameLength-2] != 'v' ||
        InputFileName[InputFileNameLength-1] != 'm')
     {
         InvalidCodePath;
@@ -258,6 +259,8 @@ vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName)
         }
         Result.CurrentLength++;
     }
+    // NOTE(Marko): remove the file extension ".vm";
+    Result.CurrentLength -= 3;
 
     Result.MemorySize = Result.CurrentLength++;
 
