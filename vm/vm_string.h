@@ -43,5 +43,11 @@ vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName);
 
 void FreeProgramName(vm_string GlobalProgramName);
 
+vm_string ConstructVMStringFromCString(const char *String);
+
+
+// NOTE(Marko): Global Variable for program name. 
+global_variable vm_string GlobalProgramName = {0};
+
 #define VM_STRING_H
 #endif

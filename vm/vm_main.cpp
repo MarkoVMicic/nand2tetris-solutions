@@ -2,7 +2,6 @@
 #include "vm_string.h"
 #include "translate_vm.h"
 
-global_variable vm_string GlobalProgramName = {0};
 
 
 
