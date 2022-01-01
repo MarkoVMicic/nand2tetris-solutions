@@ -744,7 +744,89 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &PointerString))
     {
-        
+        /* NOTE(Marko): "push pointer 0" corresponds to pushing from base 
+                        address of THIS.
+                        This translates to
+                            @THIS
+                            D=M
+                            @SP
+                            A=M
+                            M=D
+                            @SP
+                            M=M+1
+
+                        "push pointer 1" corresponds to pushing from base 
+                        address of THAT.
+                        This translates to
+                            @THAT
+                            D=M
+                            @SP
+                            A=M
+                            M=D
+                            @SP
+                            M=M+1
+
+                        In both cases, there are a total of 32 characters
+        */
+        vm_string ZeroString = {"0",1,2};
+        vm_string OneString = {"1",1,2};
+        vm_string BaseAddress;
+        if(VMStringsAreEqual(&VMStringPushValue, &ZeroString))
+        {
+            BaseAddress.Contents = "THIS";
+            BaseAddress.CurrentLength = 4;
+            BaseAddress.MemorySize = 5;
+        }
+        else if(VMStringsAreEqual(&VMStringPushValue, &OneString))
+        {
+            BaseAddress.Contents = "THAT";
+            BaseAddress.CurrentLength = 4;
+            BaseAddress.MemorySize = 5;            
+        }
+        else
+        {
+            InvalidCodePath;
+        }
+
+        vm_string FirstPart = {"@", 1, 2};
+        vm_string SecondPart = {"\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",27,28};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength + 
+            SecondPart.CurrentLength + 
+            BaseAddress.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(BaseAddress.Contents,
+                         BaseAddress.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += BaseAddress.CurrentLength;
+            LengthRemaining -= BaseAddress.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PushPointerCount++; 
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &TempString))
     {
