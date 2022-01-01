@@ -577,7 +577,74 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &StaticString))
     {
-        
+        /* NOTE(Marko): "push static i" translates to
+                            @<program_name>.i
+                            D=M
+                            @SP
+                            A=M
+                            M=D
+                            @SP
+                            M=M+1
+
+                        where <program_name> is the contents of GlobalProgramName.
+                        Excluding <program_name>.i there are 28 characters. 
+        */           
+
+        vm_string FirstPart = ConstructVMStringFromCString("@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
+        vm_string Dot = ConstructVMStringFromCString(".");
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength + 
+            SecondPart.CurrentLength + 
+            GlobalProgramName.CurrentLength +
+            Dot.CurrentLength +
+            VMStringPushValue.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(GlobalProgramName.Contents,
+                         GlobalProgramName.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += GlobalProgramName.CurrentLength;
+            LengthRemaining -= GlobalProgramName.CurrentLength;
+
+            CopyVMString(Dot.Contents,
+                         Dot.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += Dot.CurrentLength;
+            LengthRemaining -= Dot.CurrentLength;
+
+            CopyVMString(VMStringPushValue.Contents,
+                         VMStringPushValue.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPushValue.CurrentLength;
+            LengthRemaining -= VMStringPushValue.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PushStaticCount++; 
     }
     else if(VMStringsAreEqual(&VMStringPushSegment, &ConstantString))
     {
