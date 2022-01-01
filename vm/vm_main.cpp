@@ -1,5 +1,6 @@
 #include "vm_main.h"
 #include "vm_string.h"
+#include "vm_tokens.h"
 #include "translate_vm.h"
 
 // NOTE(Marko): Global Variable for program name. 
@@ -115,20 +116,27 @@ int main(int argc, char **argv)
         VMInput.MemorySize = VMInput.CurrentLength; 
 
         vm_string *ASMOutputBuffer = 
-            AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
+            AllocateVMString(INITIAL_ASM_OUTPUT_STRING_SIZE);
 
         instruction_counts InstructionCounts = {0};
 
-        // TODO(Marko): Allocate ASMInstructions vm_string once here and free here. This prevents multiple calls to malloc() and free() for a piece of memory that is easily reusable. 
-        // TODO(Marko): Allocate VMTokens once here and free here. This prevents multiple calls to malloc() and free() for a piece of memory that is easily reusable. 
+        vm_string *ASMInstructions = 
+            AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
+
+        vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
+                                               DEFAULT_INITIAL_VM_STRING_SIZE);
 
         TranslateVMInstructionsToASM(&VMInput, 
                                      ASMOutputBuffer, 
-                                     &InstructionCounts);
+                                     &InstructionCounts,
+                                     ASMInstructions,
+                                     VMTokens);
 
 
         WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
         FreeVMString(ASMOutputBuffer);
+        FreeVMString(ASMInstructions);
+        FreeVMTokens(VMTokens);
         FreeProgramName(GlobalProgramName);
     }
     FreeEntireFileMemory(InputFileContents); 

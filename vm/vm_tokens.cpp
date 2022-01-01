@@ -28,8 +28,8 @@ vm_tokens *AllocateVMTokens(uint32 TokenCount, uint32 TokenVMStringSize)
         Result->VMTokens[TokenIndex] = *CurrentString;
     }
 
-    return(Result);
-}
+    return(Result)
+;}
 
 
 internal void ParsePopCommand(vm_tokens *VMTokens,
@@ -1836,10 +1836,16 @@ void TokenizeLine(vm_string *VMInputString,
     // NOTE(Marko): Final token is deliniated using \n so add one more to 
     //              TokenCount
     TokenCount++;
-    //
-    // NOTE(Marko): Allocate the vm_string structs
-    //
+
+    if(TokenCount > MAX_VM_TOKEN_COUNT)
+    {
+        // NOTE(Marko): At this point there shouldn't be *that* many tokens 
+        //              since we know how much there could possibly be ahead 
+        //              of time 
+        InvalidCodePath;
+    }
     VMTokens->VMTokenCount = TokenCount;
+
 
     // NOTE(Marko): Putting tokens into vm_tokens struct. 
     CurrentChar = &VMInputString->Contents[*InputIndex];
@@ -1857,16 +1863,19 @@ void TokenizeLine(vm_string *VMInputString,
         uint32 CurrentTokenLength = 
             (uint32)(CurrentTokenEnd - CurrentTokenBegin);
 
-        vm_string *CurrentToken = AllocateVMString(CurrentTokenLength+1);
-        CurrentToken->CurrentLength = CurrentTokenLength;
-        CopyVMString(CurrentTokenBegin, 
-                     CurrentTokenLength,
-                     CurrentToken->Contents,
-                     CurrentToken->CurrentLength);
-        // NOTE(Marko): Null terminate
-        CurrentToken->Contents[CurrentToken->CurrentLength] = '\0';
+        VMTokens->VMTokens[TokenIndex].CurrentLength = CurrentTokenLength;
+        if(VMTokens->VMTokens[TokenIndex].MemorySize <= 
+           VMTokens->VMTokens[TokenIndex].CurrentLength)
+        {
+            GrowVMString(&VMTokens->VMTokens[TokenIndex]);
+        } 
 
-        VMTokens->VMTokens[TokenIndex] = *CurrentToken;
+        CopyVMString(CurrentTokenBegin,
+                     CurrentTokenLength,
+                     VMTokens->VMTokens[TokenIndex].Contents,
+                     VMTokens->VMTokens[TokenIndex].CurrentLength);
+        // NOTE(Marko): Null terminate
+        VMTokens->VMTokens[TokenIndex].Contents[VMTokens->VMTokens[TokenIndex].CurrentLength]= '\0';
         TokenIndex++;
 
         if(*CurrentChar != NEWLINE)

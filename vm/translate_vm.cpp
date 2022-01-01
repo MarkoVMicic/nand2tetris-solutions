@@ -26,29 +26,35 @@ internal void TranslateLine(vm_string *VMInputString,
                             uint32 *InputIndex, 
                             vm_string *ASMOutputString, 
                             uint32 *OutputIndex,
-                            instruction_counts *InstructionCounts)
+                            instruction_counts *InstructionCounts,
+                            vm_string *ASMInstructions,
+                            vm_tokens *VMTokens)
 {
 
-    vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
-                                           DEFAULT_INITIAL_VM_STRING_SIZE);
     TokenizeLine(VMInputString, InputIndex, VMTokens);
-
-    vm_string *ASMInstructions = 
-        AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
     ParseTokensToASM(VMTokens, ASMInstructions, InstructionCounts);
 
     WriteToASMOutput(ASMInstructions, ASMOutputString, OutputIndex);
 
-    FreeVMTokens(VMTokens);
-    FreeVMString(ASMInstructions);
-
+    // NOTE(Marko): Reset VMTokens by setting each of the vm_strings to have 0 
+    //              length
+    for(uint32 TokenIndex = 0; 
+        TokenIndex < VMTokens->VMTokenCount; 
+        TokenIndex++)
+    {
+        VMTokens->VMTokens[TokenIndex].CurrentLength = 0;
+    }
+    // NOTE(Marko): Reset ASMInstructions by setting its length to 0
+    ASMInstructions->CurrentLength = 0;
 }
 
 
 void TranslateVMInstructionsToASM(vm_string *VMInputString, 
                                   vm_string *ASMOutputString,
-                                  instruction_counts *InstructionCounts)
+                                  instruction_counts *InstructionCounts,
+                                  vm_string *ASMInstructions,
+                                  vm_tokens *VMTokens)
 {
     // TODO(Marko): BONUS OBJECTIVE: Create error struct and pass it into 
     //                               here. Then write errors to the error 
@@ -99,7 +105,14 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                               &InputIndex, 
                               ASMOutputString, 
                               &OutputIndex,
-                              InstructionCounts);
+                              InstructionCounts,
+                              ASMInstructions,
+                              VMTokens);
+                // NOTE(Marko): Since we've seeked to the newline, we want 
+                //              to back up once so that the for loop can 
+                //              increment us and then the switch statement 
+                //              can process the newline. 
+                InputIndex--;
             }
         }
     }
