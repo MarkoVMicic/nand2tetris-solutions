@@ -70,8 +70,8 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 57 characters.  
         */
-        vm_string FirstPart = {"@ARG\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
+        vm_string FirstPart = ConstructVMStringFromCString("@ARG\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -129,8 +129,8 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 57 characters.  
         */
-        vm_string FirstPart = {"@LCL\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
+        vm_string FirstPart = ConstructVMStringFromCString("@LCL\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
@@ -267,8 +267,8 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
                         Excluding X (which is the specified local section) there are 58 characters.  
         */
         
-        vm_string FirstPart = {"@THIS\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
+        vm_string FirstPart = ConstructVMStringFromCString("@THIS\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
             SecondPart.CurrentLength +
@@ -326,8 +326,8 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
 
                         Excluding X (which is the specified local section) there are 58 characters.  
         */
-        vm_string FirstPart = {"@THAT\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n",47,48};
+        vm_string FirstPart = ConstructVMStringFromCString("@THAT\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=D+A\n@R13\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@R13\nA=M\nM=D\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -392,28 +392,24 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
         */
 
         // NOTE(Marko): Make sure that the pop value is either 0 or 1. 
-        vm_string ZeroString = {"0",1,2};
-        vm_string OneString = {"1",1,2};
+        vm_string ZeroString = ConstructVMStringFromCString("0");
+        vm_string OneString = ConstructVMStringFromCString("1");
         vm_string BaseAddress;
         if(VMStringsAreEqual(&VMStringPopValue, &ZeroString))
         {
-            BaseAddress.Contents = "THIS";
-            BaseAddress.CurrentLength = 4;
-            BaseAddress.MemorySize = 5;
+            BaseAddress = ConstructVMStringFromCString("THIS");
         }
         else if(VMStringsAreEqual(&VMStringPopValue, &OneString))
         {
-            BaseAddress.Contents = "THAT";
-            BaseAddress.CurrentLength = 4;
-            BaseAddress.MemorySize = 5;            
+            BaseAddress = ConstructVMStringFromCString("THAT");
         }
         else
         {
             InvalidCodePath;
         }
 
-        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@", 19, 20};
-        vm_string SecondPart = {"\nM=D\n",5,6};
+        vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nM=D\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
@@ -475,8 +471,8 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
         }
         vm_string VMStringPopAddress = UInt32ToVMString(PopAddressValue);
 
-        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@",19,20};
-        vm_string SecondPart = {"\nM=D\n",5,6};
+        vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nM=D\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -555,8 +551,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
                 43 characters excluding X (where X is the address number)
         */
-        vm_string FirstPart = {"@ARG\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",33,34};
+        vm_string FirstPart = ConstructVMStringFromCString("@ARG\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
             SecondPart.CurrentLength + 
@@ -609,8 +605,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
                         43 characters excluding X (where X is the address number)
         */
-        vm_string FirstPart = {"@LCL\nD=M\n@",10,11};
-        vm_string SecondPart = {"\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",33,34};
+        vm_string FirstPart = ConstructVMStringFromCString("@LCL\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
             SecondPart.CurrentLength + 
@@ -734,8 +730,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
                         need to include the length of VMStringPushValue
 
         */
-        vm_string FirstPart = {"@",1,2};
-        vm_string SecondPart = {"\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",27,28};
+        vm_string FirstPart = ConstructVMStringFromCString("@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
             SecondPart.CurrentLength + 
@@ -788,8 +784,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
                         43 characters excluding X (where X is the address number)
         */
-        vm_string FirstPart = {"@THIS\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",33,34};
+        vm_string FirstPart = ConstructVMStringFromCString("@THIS\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
             SecondPart.CurrentLength + 
@@ -842,8 +838,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
                         43 characters excluding X (where X is the address number)
         */
-        vm_string FirstPart = {"@THAT\nD=M\n@",11,12};
-        vm_string SecondPart = {"\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",33,34};
+        vm_string FirstPart = ConstructVMStringFromCString("@THAT\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
             SecondPart.CurrentLength + 
@@ -906,28 +902,24 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
                         In both cases, there are a total of 32 characters
         */
-        vm_string ZeroString = {"0",1,2};
-        vm_string OneString = {"1",1,2};
+        vm_string ZeroString = ConstructVMStringFromCString("0");
+        vm_string OneString = ConstructVMStringFromCString("1");
         vm_string BaseAddress;
         if(VMStringsAreEqual(&VMStringPushValue, &ZeroString))
         {
-            BaseAddress.Contents = "THIS";
-            BaseAddress.CurrentLength = 4;
-            BaseAddress.MemorySize = 5;
+            BaseAddress = ConstructVMStringFromCString("THIS");
         }
         else if(VMStringsAreEqual(&VMStringPushValue, &OneString))
         {
-            BaseAddress.Contents = "THAT";
-            BaseAddress.CurrentLength = 4;
-            BaseAddress.MemorySize = 5;            
+            BaseAddress = ConstructVMStringFromCString("THAT");
         }
         else
         {
             InvalidCodePath;
         }
 
-        vm_string FirstPart = {"@", 1, 2};
-        vm_string SecondPart = {"\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",27,28};
+        vm_string FirstPart = ConstructVMStringFromCString("@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
@@ -990,8 +982,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
         }
         vm_string VMStringPushAddress = UInt32ToVMString(PushAddressValue);
 
-        vm_string FirstPart = {"@",1,2};
-        vm_string SecondPart = {"\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n",27,28};
+        vm_string FirstPart = ConstructVMStringFromCString("@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength + 
             SecondPart.CurrentLength + 
@@ -1039,7 +1031,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 
 internal void ParseReturnCommand(vm_string *ASMInstructions)
 {
-
+    // TODO(Marko): Implement
+    InvalidCodePath;
 }
 
 
@@ -1060,15 +1053,15 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                                 "or"
                                 "not"
             */
-    vm_string AddString = {"add", 3, 4};
-    vm_string SubString = {"sub", 3, 4};
-    vm_string NegString = {"neg", 3, 4};
-    vm_string EqString = {"eq", 2, 3};
-    vm_string GtString = {"gt", 2, 3};
-    vm_string LtString = {"lt", 2, 3};
-    vm_string AndString = {"and", 3, 4};
-    vm_string OrString = {"or", 2, 3};
-    vm_string NotString = {"not", 3, 4};
+    vm_string AddString = ConstructVMStringFromCString("add");
+    vm_string SubString = ConstructVMStringFromCString("sub");
+    vm_string NegString = ConstructVMStringFromCString("neg");
+    vm_string EqString = ConstructVMStringFromCString("eq");
+    vm_string GtString = ConstructVMStringFromCString("gt");
+    vm_string LtString = ConstructVMStringFromCString("lt");
+    vm_string AndString = ConstructVMStringFromCString("and");
+    vm_string OrString = ConstructVMStringFromCString("or");
+    vm_string NotString = ConstructVMStringFromCString("not");
 
     vm_string ArithmeticAsm;
     if(VMStringsAreEqual(&VMStringArithmeticCommand, &AddString))
@@ -1088,9 +1081,8 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         Nothing depends on the input, so we can just hard code 
                         it in. 
         */
-        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n";
-        ArithmeticAsm.CurrentLength = 48;
-        ArithmeticAsm.MemorySize = 49;
+
+        ArithmeticAsm = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M+D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
@@ -1101,7 +1093,6 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                      ASMInstructions->Contents,
                      ASMInstructions->CurrentLength);
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-
         InstructionCounts->AddCount++;
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &SubString))
@@ -1131,9 +1122,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         Nothing depends on the input, so we can just hard code 
                         it in. 
         */
-        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M-D\n@SP\nM=M+1\n";
-        ArithmeticAsm.CurrentLength = 48;
-        ArithmeticAsm.MemorySize = 49;
+        ArithmeticAsm = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M-D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
@@ -1164,9 +1153,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         it in. 
 
         */
-        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nM=-M\n@SP\nM=M+1\n";
-        ArithmeticAsm.CurrentLength = 29;
-        ArithmeticAsm.MemorySize = 30;
+        ArithmeticAsm = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nM=-M\n@SP\nM=M+1\n");
 
         ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
@@ -1219,13 +1206,13 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         There are 6 slots in which to place the EqCount. 
         */
         vm_string EqCountString = UInt32ToVMString(InstructionCounts->EqCount);
-        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_EQUAL_",49,50};
-        vm_string SecondPart = {"\nD;JNE\n(EQUAL_",14,15};
-        vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@EQUAL_END_",26,27};
-        vm_string FourthPart = {"\n0;JMP\n(NOT_EQUAL_",18,19};
-        vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@EQUAL_END_",25,26};
-        vm_string SixthPart = {"\n0;JMP\n(EQUAL_END_",18,19};
-        vm_string SeventhPart = {")\n@SP\nM=M+1\n",12,13};
+        vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_EQUAL_");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD;JNE\n(EQUAL_");
+        vm_string ThirdPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=-1\n@EQUAL_END_");
+        vm_string FourthPart = ConstructVMStringFromCString("\n0;JMP\n(NOT_EQUAL_");
+        vm_string FifthPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=0\n@EQUAL_END_");
+        vm_string SixthPart = ConstructVMStringFromCString("\n0;JMP\n(EQUAL_END_");
+        vm_string SeventhPart = ConstructVMStringFromCString(")\n@SP\nM=M+1\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -1382,13 +1369,13 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         GtCount.        
         */
         vm_string GtCountString = UInt32ToVMString(InstructionCounts->GtCount);
-        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_GT_",46,47};
-        vm_string SecondPart = {"\nD;JLE\n(GT_",11,12};
-        vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@GT_END_",23,24};
-        vm_string FourthPart = {"\n0;JMP\n(NOT_GT_",15,16};
-        vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@GT_END_",22,23};
-        vm_string SixthPart = {"\n0;JMP\n(GT_END_",15,16};
-        vm_string SeventhPart = {")\n@SP\nM=M+1\n",12,13};
+        vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_GT_");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD;JLE\n(GT_");
+        vm_string ThirdPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=-1\n@GT_END_");
+        vm_string FourthPart = ConstructVMStringFromCString("\n0;JMP\n(NOT_GT_");
+        vm_string FifthPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=0\n@GT_END_");
+        vm_string SixthPart = ConstructVMStringFromCString("\n0;JMP\n(GT_END_");
+        vm_string SeventhPart = ConstructVMStringFromCString(")\n@SP\nM=M+1\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -1547,13 +1534,13 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         LtCount.        
         */
         vm_string LtCountString = UInt32ToVMString(InstructionCounts->LtCount);
-        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_LT_",46,47};
-        vm_string SecondPart = {"\nD;JGE\n(LT_",11,12};
-        vm_string ThirdPart = {")\n@SP\nA=M\nM=-1\n@LT_END_",23,24};
-        vm_string FourthPart = {"\n0;JMP\n(NOT_LT_",15,16};
-        vm_string FifthPart = {")\n@SP\nA=M\nM=0\n@LT_END_",22,23};
-        vm_string SixthPart = {"\n0;JMP\n(LT_END_",15,16};
-        vm_string SeventhPart = {")\n@SP\nM=M+1\n",12,13};
+        vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_LT_");
+        vm_string SecondPart = ConstructVMStringFromCString("\nD;JGE\n(LT_");
+        vm_string ThirdPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=-1\n@LT_END_");
+        vm_string FourthPart = ConstructVMStringFromCString("\n0;JMP\n(NOT_LT_");
+        vm_string FifthPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=0\n@LT_END_");
+        vm_string SixthPart = ConstructVMStringFromCString("\n0;JMP\n(LT_END_");
+        vm_string SeventhPart = ConstructVMStringFromCString(")\n@SP\nM=M+1\n");
 
         ASMInstructions->CurrentLength = 
             FirstPart.CurrentLength +
@@ -1680,9 +1667,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         Nothing depends on the input, so we can just hard code 
                         it in. 
         */
-        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M&D\n@SP\nM=M+1\n";
-        ArithmeticAsm.CurrentLength = 48;
-        ArithmeticAsm.MemorySize = 49;
+        ArithmeticAsm = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M&D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
@@ -1713,9 +1698,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         Nothing depends on the input, so we can just hard code 
                         it in. 
         */
-        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M|D\n@SP\nM=M+1\n";
-        ArithmeticAsm.CurrentLength = 48;
-        ArithmeticAsm.MemorySize = 49;
+        ArithmeticAsm = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nM=M|D\n@SP\nM=M+1\n");
         ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
         {
@@ -1741,9 +1724,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                             @SP
                             M=M+1
         */
-        ArithmeticAsm.Contents = "@SP\nM=M-1\nA=M\nM=!M\n@SP\nM=M+1\n";
-        ArithmeticAsm.CurrentLength = 29;
-        ArithmeticAsm.MemorySize = 30;
+        ArithmeticAsm = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nM=!M\n@SP\nM=M+1\n");
 
         ASMInstructions->CurrentLength = ArithmeticAsm.CurrentLength;
         if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
@@ -1768,6 +1749,10 @@ void ParseTokensToASM(vm_tokens *VMTokens,
                       vm_string *ASMInstructions,
                       instruction_counts *InstructionCounts)
 {
+    vm_string ReturnString = ConstructVMStringFromCString("return");
+    vm_string PushString = ConstructVMStringFromCString("push");
+    vm_string PopString = ConstructVMStringFromCString("pop");
+
     switch(VMTokens->VMTokenCount)
     {
         case 1:
@@ -1788,7 +1773,8 @@ void ParseTokensToASM(vm_tokens *VMTokens,
                             command. 
 
             */
-            if(VMStringsAreEqual(&VMTokens->VMTokens[0], "return", 6))
+            
+            if(VMStringsAreEqual(&VMTokens->VMTokens[0], &ReturnString))
             {
                 ParseReturnCommand(ASMInstructions);
             }
@@ -1807,11 +1793,11 @@ void ParseTokensToASM(vm_tokens *VMTokens,
 
         case 3:
         {
-            if(VMStringsAreEqual(&VMTokens->VMTokens[0], "push", 4))
+            if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PushString))
             {
                 ParsePushCommand(VMTokens, ASMInstructions, InstructionCounts);
             }
-            else if(VMStringsAreEqual(&VMTokens->VMTokens[0], "pop", 3))
+            else if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PopString))
             {
                 ParsePopCommand(VMTokens, ASMInstructions, InstructionCounts);
             }
