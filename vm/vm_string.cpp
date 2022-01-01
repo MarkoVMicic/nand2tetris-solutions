@@ -278,3 +278,14 @@ void FreeProgramName(vm_string GlobalProgramName)
 {
     free(GlobalProgramName.Contents);
 }
+
+
+vm_string ConstructVMStringFromCString(const char *String)
+{
+    vm_string Result;
+    Result.Contents = (char *)String;
+    Result.CurrentLength = StringLength(String);
+    Result.MemorySize = Result.CurrentLength+1;
+
+    return(Result);
+}
