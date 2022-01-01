@@ -2,6 +2,9 @@
 #include "vm_string.h"
 #include "translate_vm.h"
 
+global_variable vm_string GlobalProgramName = {0};
+
+
 
 void WriteVMStringToFile(vm_string *VMString, char *FileName)
 {
@@ -103,6 +106,8 @@ int main(int argc, char **argv)
     read_file_result InputFileContents = ReadEntireFile(InputFileName);
     if(InputFileContents.Length > 0)
     {
+        GlobalProgramName = 
+            RetrieveProgramNameFromInputFileName(InputFileName);
         // TODO(Marko): Check for null termination!
         vm_string VMInput = {0};
         VMInput.Contents = InputFileContents.Contents;
@@ -120,8 +125,11 @@ int main(int argc, char **argv)
         TranslateVMInstructionsToASM(&VMInput, 
                                      ASMOutputBuffer, 
                                      &InstructionCounts);
+
+
         WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
         FreeVMString(ASMOutputBuffer);
+        FreeProgramName(GlobalProgramName);
     }
     FreeEntireFileMemory(InputFileContents); 
 

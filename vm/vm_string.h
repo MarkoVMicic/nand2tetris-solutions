@@ -39,5 +39,9 @@ void CopyVMString(char *SourceString,
                   char *DestString, 
                   uint32 DestStringLength);
 
+vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName);
+
+void FreeProgramName(vm_string GlobalProgramName);
+
 #define VM_STRING_H
 #endif
