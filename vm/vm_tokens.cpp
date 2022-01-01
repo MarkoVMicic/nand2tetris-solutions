@@ -168,7 +168,76 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &StaticString))
     {
-        
+        /* NOTE(Marko): "pop static i" translates to
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @<program_name>.i
+                            M=D
+
+                        where <program_name> is the contents of 
+                        GlobalProgramName.
+                        Excluding <program_name>.i there are 24 characters. 
+       */
+
+        vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@");
+        vm_string SecondPart = ConstructVMStringFromCString("\nM=D\n");
+        vm_string Dot = ConstructVMStringFromCString(".");
+
+        ASMInstructions->CurrentLength =
+            FirstPart.CurrentLength +
+            GlobalProgramName.CurrentLength +
+            Dot.CurrentLength +
+            VMStringPopValue.CurrentLength +
+            SecondPart.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(GlobalProgramName.Contents,
+                         GlobalProgramName.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += GlobalProgramName.CurrentLength;
+            LengthRemaining -= GlobalProgramName.CurrentLength;
+
+            CopyVMString(Dot.Contents,
+                         Dot.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += Dot.CurrentLength;
+            LengthRemaining -= Dot.CurrentLength;
+
+            CopyVMString(VMStringPopValue.Contents,
+                         VMStringPopValue.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += VMStringPopValue.CurrentLength;
+            LengthRemaining -= VMStringPopValue.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PopStaticCount++; 
+
+
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &ConstantString))
     {
@@ -586,7 +655,8 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
                             @SP
                             M=M+1
 
-                        where <program_name> is the contents of GlobalProgramName.
+                        where <program_name> is the contents of 
+                        GlobalProgramName.
                         Excluding <program_name>.i there are 28 characters. 
         */           
 
