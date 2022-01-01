@@ -298,7 +298,89 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &PointerString))
     {
-        
+        /* NOTE(Marko): "pop pointer 0" corresponds to popping into base 
+                        address of THIS.
+                        This translates to:
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @THIS
+                            M=D
+
+                        "pop pointer 1" corresponds to popping into base 
+                        address of THAT.
+                        This translates to:
+                            @SP
+                            M=M-1
+                            A=M
+                            D=M
+                            @THIS
+                            M=D
+
+                        Both cases have 28 characters.                   
+        */
+
+        // NOTE(Marko): Make sure that the pop value is either 0 or 1. 
+        vm_string ZeroString = {"0",1,2};
+        vm_string OneString = {"1",1,2};
+        vm_string BaseAddress;
+        if(VMStringsAreEqual(&VMStringPopValue, &ZeroString))
+        {
+            BaseAddress.Contents = "THIS";
+            BaseAddress.CurrentLength = 4;
+            BaseAddress.MemorySize = 5;
+        }
+        else if(VMStringsAreEqual(&VMStringPopValue, &OneString))
+        {
+            BaseAddress.Contents = "THAT";
+            BaseAddress.CurrentLength = 4;
+            BaseAddress.MemorySize = 5;            
+        }
+        else
+        {
+            InvalidCodePath;
+        }
+
+        vm_string FirstPart = {"@SP\nM=M-1\nA=M\nD=M\n@", 19, 20};
+        vm_string SecondPart = {"\nM=D\n",5,6};
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength + 
+            SecondPart.CurrentLength + 
+            BaseAddress.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(BaseAddress.Contents,
+                         BaseAddress.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += BaseAddress.CurrentLength;
+            LengthRemaining -= BaseAddress.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+        ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+        InstructionCounts->PopPointerCount++;   
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &TempString))
     {
