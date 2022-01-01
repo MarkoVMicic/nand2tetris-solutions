@@ -1,6 +1,9 @@
 #include "vm_tokens.h"
 #include "vm_string.h"
 
+// NOTE(Marko): global variable declared in vm_main.exe
+global_variable vm_string GlobalProgramName;
+
 void FreeVMTokens(vm_tokens *VMTokens)
 {
     for(uint32 TokenIndex = 0;

@@ -262,7 +262,7 @@ vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName)
     // NOTE(Marko): remove the file extension ".vm";
     Result.CurrentLength -= 3;
 
-    Result.MemorySize = Result.CurrentLength++;
+    Result.MemorySize = Result.CurrentLength + 1;
 
     Result.Contents = (char *)malloc(Result.MemorySize*sizeof(char));
     for(uint32 Index = 0; Index < Result.CurrentLength; Index++)

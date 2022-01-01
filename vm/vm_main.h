@@ -12,7 +12,7 @@
 //       the same static keyword. 
 #define internal static    
 #define local_persist static
-#define global_variable static 
+#define global_variable extern
 
 typedef int8_t int8; 
 typedef int16_t int16;

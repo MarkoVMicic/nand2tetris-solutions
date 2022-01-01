@@ -2,7 +2,8 @@
 #include "vm_string.h"
 #include "translate_vm.h"
 
-
+// NOTE(Marko): Global Variable for program name. 
+vm_string GlobalProgramName = {0};
 
 
 void WriteVMStringToFile(vm_string *VMString, char *FileName)
