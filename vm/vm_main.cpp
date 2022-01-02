@@ -186,6 +186,15 @@ int main(int argc, char **argv)
             GlobalProgramName = 
                 RetrieveProgramNameFromInputFileName(InputFileName,
                                                      ErrorList);
+            if(GlobalProgramName.CurrentLength = 0)
+            {
+                // NOTE(Marko): If the program name had the wrong extension or 
+                //              was unable to be heap allocated, then we can 
+                //              simply replace it with some indicator that 
+                //              this didn't work, but still generate valid 
+                //              assembly. 
+                GlobalProgramName = ConstructVMStringFromCString("<vm_file_not_found>");
+            }
             // TODO(Marko): Check for null termination!
             vm_string VMInput = {0};
             VMInput.Contents = InputFileContents.Contents;
