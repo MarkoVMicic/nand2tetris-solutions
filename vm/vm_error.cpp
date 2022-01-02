@@ -38,7 +38,7 @@ vm_error_list *InitializeErrorList(uint32 MaxErrorCount,
     Result->ErrorLines = 
         (uint32 *)malloc(Result->MaxErrorCount*sizeof(uint32));
     Result->ErrorsWrittenCount = 0;
-    Result->CurrentLineCount = 1;
+    Result->CurrentLineCount = 0;
 
     for(uint32 Index = 0; Index < Result->MaxErrorCount; Index++)
     {
