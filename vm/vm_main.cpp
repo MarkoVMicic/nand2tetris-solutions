@@ -216,7 +216,8 @@ int main(int argc, char **argv)
                                          ASMOutputBuffer, 
                                          &InstructionCounts,
                                          ASMInstructions,
-                                         VMTokens);
+                                         VMTokens,
+                                         ErrorList);
 
             WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
             FreeVMString(ASMOutputBuffer);
@@ -236,7 +237,5 @@ int main(int argc, char **argv)
     {
         PrintErrorsToConsole(ErrorList);
     }
-
-
     return(0);
 }

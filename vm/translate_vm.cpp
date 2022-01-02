@@ -28,7 +28,8 @@ internal void TranslateLine(vm_string *VMInputString,
                             uint32 *OutputIndex,
                             instruction_counts *InstructionCounts,
                             vm_string *ASMInstructions,
-                            vm_tokens *VMTokens)
+                            vm_tokens *VMTokens,
+                            vm_error_list *ErrorList)
 {
 
     TokenizeLine(VMInputString, InputIndex, VMTokens);
@@ -54,14 +55,15 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                                   vm_string *ASMOutputString,
                                   instruction_counts *InstructionCounts,
                                   vm_string *ASMInstructions,
-                                  vm_tokens *VMTokens)
+                                  vm_tokens *VMTokens,
+                                  vm_error_list *ErrorList)
 {
     // TODO(Marko): BONUS OBJECTIVE: Create error struct and pass it into 
     //                               here. Then write errors to the error 
     //                               struct as they are encountered, recording 
     //                               the line numbers and error type. 
 
-    uint32 LineCount = 1;
+    ErrorList->CurrentLineCount = 1;
     uint32 OutputIndex = 0;
     for(uint32 InputIndex = 0; 
         InputIndex < VMInputString->CurrentLength; 
@@ -86,17 +88,17 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                 }
                 else
                 {
-                    printf("Floating slash found on line %d\n", LineCount);
-                    return;
+                    vm_string Error = ConstructVMStringFromCString("Floating slash found.");
+                    AddErrorToErrorList(ErrorList, &Error);
                 }
             };
 
             case NEWLINE:
             {
 #if VM_DEBUG
-                printf("Line %d processed\n", LineCount);
+                printf("Line %d processed\n", ErrorList->CurrentLineCount);
 #endif
-                LineCount++;
+                ErrorList->CurrentLineCount++;
             } break;
 
             default:
@@ -107,7 +109,8 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                               &OutputIndex,
                               InstructionCounts,
                               ASMInstructions,
-                              VMTokens);
+                              VMTokens,
+                              ErrorList);
                 // NOTE(Marko): Since we've seeked to the newline, we want 
                 //              to back up once so that the for loop can 
                 //              increment us and then the switch statement 
