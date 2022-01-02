@@ -1,4 +1,5 @@
 #if !defined(VM_STRING_H)
+
 #include "vm_main.h"
 
 
@@ -39,7 +40,7 @@ void CopyVMString(char *SourceString,
                   char *DestString, 
                   uint32 DestStringLength);
 
-vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName);
+uint32 StringLength(const char *String);
 
 void FreeProgramName(vm_string GlobalProgramName);
 

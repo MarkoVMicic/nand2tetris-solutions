@@ -1,6 +1,7 @@
-#if !defined(VM_ERROR_H)
 
+#if !defined(VM_ERROR_H)
 #include "vm_string.h"
+
 
 #define INITIAL_ERROR_ALLOCATION_AMOUNT 16
 

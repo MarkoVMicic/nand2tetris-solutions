@@ -232,54 +232,6 @@ uint32 StringLength(const char *String)
 }
 
 
-vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName)
-{
-    vm_string Result = {0};
-    uint32 InputFileNameLength = StringLength(InputFileName);
-
-    // NOTE(Marko): "X:\Y\abcdefg\input_files\MyVmProgram.vm" -- we wish to 
-    //              extract "MyVmProgram.vm"
-
-    // NOTE(Marko): Check filename extension.
-    if(InputFileName[InputFileNameLength-3] != '.' ||
-       InputFileName[InputFileNameLength-2] != 'v' ||
-       InputFileName[InputFileNameLength-1] != 'm')
-    {
-        InvalidCodePath;
-    }
-
-    // NOTE(Marko): This is for windows, which demarcates using backslash!
-    uint32 ProgramNameBeginIndex = 0;
-    for(uint32 Index = InputFileNameLength-1; Index >= 0; Index--)
-    {
-        if(InputFileName[Index] == '\\')
-        {
-            ProgramNameBeginIndex = Index+1;
-            break;
-        }
-        Result.CurrentLength++;
-    }
-    // NOTE(Marko): remove the file extension ".vm";
-    Result.CurrentLength -= 3;
-
-    Result.MemorySize = Result.CurrentLength + 1;
-
-    Result.Contents = (char *)malloc(Result.MemorySize*sizeof(char));
-    for(uint32 Index = 0; Index < Result.CurrentLength; Index++)
-    {
-        Result.Contents[Index] = InputFileName[ProgramNameBeginIndex+Index];
-    }
-    Result.Contents[Result.CurrentLength] = '\0';
-
-    return(Result);
-}
-
-void FreeProgramName(vm_string GlobalProgramName)
-{
-    free(GlobalProgramName.Contents);
-}
-
-
 vm_string ConstructVMStringFromCString(const char *String)
 {
     vm_string Result;

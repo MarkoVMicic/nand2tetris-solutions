@@ -4,10 +4,79 @@
 #include "translate_vm.h"
 #include "vm_error.h"
 
+//
 // NOTE(Marko): Global Variable for program name. 
+//
 vm_string GlobalProgramName = {0};
 
+//
+// NOTE(Marko): Functions that fill in the global variable GlobalProgramName
+//
+vm_string RetrieveProgramNameFromInputFileName(const char *InputFileName,
+                                               vm_error_list *ErrorList)
+{
+    vm_string Result = {0};
+    uint32 InputFileNameLength = StringLength(InputFileName);
 
+    // NOTE(Marko): "X:\Y\abcdefg\input_files\MyVmProgram.vm" -- we wish to 
+    //              extract "MyVmProgram.vm"
+
+    // NOTE(Marko): Check filename extension.
+    if(InputFileName[InputFileNameLength-3] != '.' ||
+       InputFileName[InputFileNameLength-2] != 'v' ||
+       InputFileName[InputFileNameLength-1] != 'm')
+    {
+        vm_string Error = ConstructVMStringFromCString("Input file name has wrong extension. Expected *.vm");
+        AddErrorToErrorList(ErrorList, &Error);
+    }
+    else
+    {
+        // NOTE(Marko): This is for windows, which demarcates using backslash!
+        uint32 ProgramNameBeginIndex = 0;
+        for(uint32 Index = InputFileNameLength-1; Index >= 0; Index--)
+        {
+            if(InputFileName[Index] == '\\')
+            {
+                ProgramNameBeginIndex = Index+1;
+                break;
+            }
+            Result.CurrentLength++;
+        }
+        // NOTE(Marko): remove the file extension ".vm";
+        Result.CurrentLength -= 3;
+
+        Result.MemorySize = Result.CurrentLength + 1;
+
+        Result.Contents = (char *)malloc(Result.MemorySize*sizeof(char));
+        if(Result.Contents != NULL)
+        {
+            for(uint32 Index = 0; Index < Result.CurrentLength; Index++)
+            {
+                Result.Contents[Index] = 
+                    InputFileName[ProgramNameBeginIndex+Index];
+            }
+            Result.Contents[Result.CurrentLength] = '\0';                
+        }
+        else
+        {
+            vm_string Error = ConstructVMStringFromCString("malloc() failed while trying to allocate space for the program name.");
+            AddErrorToErrorList(ErrorList, &Error);
+            Result.CurrentLength = 0;
+            Result.MemorySize = 0;
+        }
+    }
+    return(Result);
+}
+
+void FreeProgramName(vm_string GlobalProgramName)
+{
+    free(GlobalProgramName.Contents);
+}
+
+
+//
+// NOTE(Marko): File I/O
+//
 void WriteVMStringToFile(vm_string *VMString, char *FileName)
 {
     FILE *WriteFileHandle = fopen(FileName, "w");
@@ -87,7 +156,6 @@ read_file_result ReadEntireFile(char *FileName,
     return(Result);
 }
 
-
 void FreeEntireFileMemory(read_file_result FileMemory)
 {
     if((FileMemory.Length > 0) && (FileMemory.Contents != NULL))
@@ -116,7 +184,8 @@ int main(int argc, char **argv)
         if(InputFileContents.Length > 0)
         {
             GlobalProgramName = 
-                RetrieveProgramNameFromInputFileName(InputFileName);
+                RetrieveProgramNameFromInputFileName(InputFileName,
+                                                     ErrorList);
             // TODO(Marko): Check for null termination!
             vm_string VMInput = {0};
             VMInput.Contents = InputFileContents.Contents;
