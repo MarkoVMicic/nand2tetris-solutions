@@ -2,6 +2,7 @@
 #include "vm_string.h"
 #include "vm_tokens.h"
 #include "translate_vm.h"
+#include "vm_error.h"
 
 // NOTE(Marko): Global Variable for program name. 
 vm_string GlobalProgramName = {0};
@@ -93,11 +94,16 @@ void FreeEntireFileMemory(read_file_result FileMemory)
 
 int main(int argc, char **argv)
 {
+    vm_error_list *ErrorList = 
+        InitializeErrorList(INITIAL_ERROR_ALLOCATION_AMOUNT,
+                            DEFAULT_INITIAL_VM_STRING_SIZE);
     if(argc != 3)
     {
         printf("Usage: supply the *.vm file to be translated as the first\n");
         printf("argument, and supply the target output file as the second\n");
         printf("argument.\n");
+        vm_string Error = ConstructVMStringFromCString("Incorrect number of args supplied to program");
+        AddErrorToErrorList(ErrorList, &Error);
 
         return(1);
     }
@@ -138,6 +144,10 @@ int main(int argc, char **argv)
         FreeVMString(ASMInstructions);
         FreeVMTokens(VMTokens);
         FreeProgramName(GlobalProgramName);
+    }
+    else
+    {
+        InvalidCodePath;
     }
     FreeEntireFileMemory(InputFileContents); 
 
