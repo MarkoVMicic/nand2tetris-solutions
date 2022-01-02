@@ -75,6 +75,43 @@ void FreeProgramName(vm_string GlobalProgramName)
 
 
 //
+// NOTE(Marko): Print Instruction Counts
+//
+void PrintInstructionCounts(instruction_counts *InstructionCounts)
+{
+        // NOTE(Marko): Push counts
+    printf("PushArgumentCount: %d\n", InstructionCounts->PushArgumentCount);
+    printf("PushLocalCount: %d\n", InstructionCounts->PushLocalCount);
+    printf("PushStaticCount: %d\n", InstructionCounts->PushStaticCount);
+    printf("PushConstantCount: %d\n", InstructionCounts->PushConstantCount);
+    printf("PushThisCount: %d\n", InstructionCounts->PushThisCount);
+    printf("PushThatCount: %d\n", InstructionCounts->PushThatCount);
+    printf("PushPointerCount: %d\n", InstructionCounts->PushPointerCount);
+    printf("PushTempCount: %d\n", InstructionCounts->PushTempCount);
+
+    // NOTE(Marko): Pop Counts
+    printf("PopArgumentCount: %d\n", InstructionCounts->PopArgumentCount);
+    printf("PopLocalCount: %d\n", InstructionCounts->PopLocalCount);
+    printf("PopStaticCount: %d\n", InstructionCounts->PopStaticCount);
+    printf("PopThisCount: %d\n", InstructionCounts->PopThisCount);
+    printf("PopThatCount: %d\n", InstructionCounts->PopThatCount);
+    printf("PopPointerCount: %d\n", InstructionCounts->PopPointerCount);
+    printf("PopTempCount: %d\n", InstructionCounts->PopTempCount);
+    
+    // NOTE(Marko): Arithmetic Command counts
+    printf("AddCount: %d\n", InstructionCounts->AddCount);
+    printf("SubCount: %d\n", InstructionCounts->SubCount);
+    printf("NegCount: %d\n", InstructionCounts->NegCount);
+    printf("EqCount: %d\n", InstructionCounts->EqCount);
+    printf("GtCount: %d\n", InstructionCounts->GtCount);
+    printf("LtCount: %d\n", InstructionCounts->LtCount);
+    printf("AndCount: %d\n", InstructionCounts->AndCount);
+    printf("OrCount: %d\n", InstructionCounts->OrCount);
+    printf("NotCount: %d\n", InstructionCounts->NotCount);
+}
+
+
+//
 // NOTE(Marko): File I/O
 //
 void WriteVMStringToFile(vm_string *VMString, char *FileName)
@@ -170,6 +207,7 @@ int main(int argc, char **argv)
     vm_error_list *ErrorList = 
         InitializeErrorList(INITIAL_ERROR_ALLOCATION_AMOUNT,
                             DEFAULT_INITIAL_VM_STRING_SIZE);
+    instruction_counts InstructionCounts = {0};
     if(argc != 3)
     {
         vm_string Error = ConstructVMStringFromCString("Incorrect number of args supplied to program");
@@ -204,7 +242,6 @@ int main(int argc, char **argv)
             vm_string *ASMOutputBuffer = 
                 AllocateVMString(INITIAL_ASM_OUTPUT_STRING_SIZE);
 
-            instruction_counts InstructionCounts = {0};
 
             vm_string *ASMInstructions = 
                 AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
@@ -237,5 +274,8 @@ int main(int argc, char **argv)
     {
         PrintErrorsToConsole(ErrorList);
     }
+    
+    PrintInstructionCounts(&InstructionCounts);
+
     return(0);
 }
