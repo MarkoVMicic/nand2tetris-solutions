@@ -32,7 +32,7 @@ internal void TranslateLine(vm_string *VMInputString,
                             vm_error_list *ErrorList)
 {
 
-    TokenizeLine(VMInputString, InputIndex, VMTokens);
+    TokenizeLine(VMInputString, InputIndex, VMTokens, ErrorList);
 
     ParseTokensToASM(VMTokens, ASMInstructions, InstructionCounts);
 
@@ -91,7 +91,7 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                     vm_string Error = ConstructVMStringFromCString("Floating slash found.");
                     AddErrorToErrorList(ErrorList, &Error);
                 }
-            };
+            } break;
 
             case NEWLINE:
             {

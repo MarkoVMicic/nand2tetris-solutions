@@ -1,6 +1,7 @@
 #if !defined(VM_TOKENS_H)
 
 #include "vm_string.h"
+#include "vm_error.h"
 
 #define COMMENT_SLASH '/'
 #define NEWLINE '\n'
@@ -31,7 +32,8 @@ void ParseTokensToASM(vm_tokens *VMTokens,
 
 void TokenizeLine(vm_string *VMInputString,
                   uint32 *InputIndex,
-                  vm_tokens *VMTokens);
+                  vm_tokens *VMTokens,
+                  vm_error_list *ErrorList);
 
 #define VM_TOKENS_H
 #endif

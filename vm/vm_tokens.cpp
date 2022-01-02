@@ -1813,7 +1813,8 @@ void ParseTokensToASM(vm_tokens *VMTokens,
 
 void TokenizeLine(vm_string *VMInputString, 
                   uint32 *InputIndex,
-                  vm_tokens *VMTokens)
+                  vm_tokens *VMTokens,
+                  vm_error_list *ErrorList)
 {
     // NOTE(Marko): Splits current line of VMInputString into tokens and puts 
     //              those tokens into VMTokens struct
@@ -1842,46 +1843,49 @@ void TokenizeLine(vm_string *VMInputString,
         // NOTE(Marko): At this point there shouldn't be *that* many tokens 
         //              since we know how much there could possibly be ahead 
         //              of time 
-        InvalidCodePath;
+        vm_string Error = ConstructVMStringFromCString("Too many tokens found.");
+        AddErrorToErrorList(ErrorList, &Error);
     }
-    VMTokens->VMTokenCount = TokenCount;
-
-
-    // NOTE(Marko): Putting tokens into vm_tokens struct. 
-    CurrentChar = &VMInputString->Contents[*InputIndex];
-    uint32 TokenIndex = 0;
-    while(*CurrentChar != NEWLINE)
+    else
     {
-        char *CurrentTokenBegin = CurrentChar;
-        while((*CurrentChar != WHITESPACE) && (*CurrentChar != NEWLINE))
+         VMTokens->VMTokenCount = TokenCount;
+
+        // NOTE(Marko): Putting tokens into vm_tokens struct. 
+        CurrentChar = &VMInputString->Contents[*InputIndex];
+        uint32 TokenIndex = 0;
+        while(*CurrentChar != NEWLINE)
         {
-            (*InputIndex)++;
-            CurrentChar++;
-        }
-        char *CurrentTokenEnd = CurrentChar; 
+            char *CurrentTokenBegin = CurrentChar;
+            while((*CurrentChar != WHITESPACE) && (*CurrentChar != NEWLINE))
+            {
+                (*InputIndex)++;
+                CurrentChar++;
+            }
+            char *CurrentTokenEnd = CurrentChar; 
 
-        uint32 CurrentTokenLength = 
-            (uint32)(CurrentTokenEnd - CurrentTokenBegin);
+            uint32 CurrentTokenLength = 
+                (uint32)(CurrentTokenEnd - CurrentTokenBegin);
 
-        VMTokens->VMTokens[TokenIndex].CurrentLength = CurrentTokenLength;
-        if(VMTokens->VMTokens[TokenIndex].MemorySize <= 
-           VMTokens->VMTokens[TokenIndex].CurrentLength)
-        {
-            GrowVMString(&VMTokens->VMTokens[TokenIndex]);
-        } 
+            VMTokens->VMTokens[TokenIndex].CurrentLength = CurrentTokenLength;
+            if(VMTokens->VMTokens[TokenIndex].MemorySize <= 
+               VMTokens->VMTokens[TokenIndex].CurrentLength)
+            {
+                GrowVMString(&VMTokens->VMTokens[TokenIndex]);
+            } 
 
-        CopyVMString(CurrentTokenBegin,
-                     CurrentTokenLength,
-                     VMTokens->VMTokens[TokenIndex].Contents,
-                     VMTokens->VMTokens[TokenIndex].CurrentLength);
-        // NOTE(Marko): Null terminate
-        VMTokens->VMTokens[TokenIndex].Contents[VMTokens->VMTokens[TokenIndex].CurrentLength]= '\0';
-        TokenIndex++;
+            CopyVMString(CurrentTokenBegin,
+                         CurrentTokenLength,
+                         VMTokens->VMTokens[TokenIndex].Contents,
+                         VMTokens->VMTokens[TokenIndex].CurrentLength);
+            // NOTE(Marko): Null terminate
+            VMTokens->VMTokens[TokenIndex].Contents[VMTokens->VMTokens[TokenIndex].CurrentLength]= '\0';
+            TokenIndex++;
 
-        if(*CurrentChar != NEWLINE)
-        {
-            CurrentChar++;
-            (*InputIndex)++;
-        }
+            if(*CurrentChar != NEWLINE)
+            {
+                CurrentChar++;
+                (*InputIndex)++;
+            }
+        }       
     }
 }

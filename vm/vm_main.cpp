@@ -79,7 +79,7 @@ void FreeProgramName(vm_string GlobalProgramName)
 //
 void PrintInstructionCounts(instruction_counts *InstructionCounts)
 {
-        // NOTE(Marko): Push counts
+    // NOTE(Marko): Push counts
     printf("PushArgumentCount: %d\n", InstructionCounts->PushArgumentCount);
     printf("PushLocalCount: %d\n", InstructionCounts->PushLocalCount);
     printf("PushStaticCount: %d\n", InstructionCounts->PushStaticCount);
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
             GlobalProgramName = 
                 RetrieveProgramNameFromInputFileName(InputFileName,
                                                      ErrorList);
-            if(GlobalProgramName.CurrentLength = 0)
+            if(GlobalProgramName.CurrentLength == 0)
             {
                 // NOTE(Marko): If the program name had the wrong extension or 
                 //              was unable to be heap allocated, then we can 
@@ -260,7 +260,11 @@ int main(int argc, char **argv)
             FreeVMString(ASMOutputBuffer);
             FreeVMString(ASMInstructions);
             FreeVMTokens(VMTokens);
-            FreeProgramName(GlobalProgramName);
+            if(!VMStringsAreEqual(&GlobalProgramName, 
+                &ConstructVMStringFromCString("<vm_file_not_found>")))
+            {
+                FreeProgramName(GlobalProgramName);
+            }
         }
         else
         {
