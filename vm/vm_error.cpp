@@ -50,3 +50,12 @@ vm_error_list *InitializeErrorList(uint32 MaxErrorCount,
 
     return(Result);
 }
+
+void PrintErrorsToConsole(vm_error_list *ErrorList)
+{
+    for(uint32 Index = 0; Index < ErrorList->ErrorsWrittenCount; Index++)
+    {
+        printf("ERROR: Line %d: %s\n", ErrorList->ErrorLines[Index], 
+                                       ErrorList->ErrorTypes[Index].Contents);
+    }
+}
