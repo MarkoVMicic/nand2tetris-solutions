@@ -15,7 +15,8 @@ void WriteVMStringToFile(vm_string *VMString, char *FileName)
     fclose(WriteFileHandle);
 }
 
-read_file_result ReadEntireFile(char *FileName)
+read_file_result ReadEntireFile(char *FileName,
+                                vm_error_list *ErrorList)
 {
     read_file_result Result = {0};
 
@@ -34,7 +35,8 @@ read_file_result ReadEntireFile(char *FileName)
         }
         else
         {
-            printf("fseek() failed\n");
+            vm_string Error = ConstructVMStringFromCString("fseek() failed while trying to seek to end of file.");
+            AddErrorToErrorList(ErrorList, &Error);
             FileSize = 0;
         }
 
@@ -61,19 +63,22 @@ read_file_result ReadEntireFile(char *FileName)
             }
             else
             {
-                printf("malloc() failed\n");
+                vm_string Error = ConstructVMStringFromCString("malloc() failed while attempting to allocate memory for the file.");
+                AddErrorToErrorList(ErrorList, &Error);
                 Result.Length = 0;
             }
         }
         else
         {
-            printf("fseek() failed\n");
+            vm_string Error = ConstructVMStringFromCString("fseek() failed while seeking back to the beginning of file.");
+            AddErrorToErrorList(ErrorList, &Error);
             Result.Length = 0;
         }
     }
     else
     {
-        printf("fopen() failed. \n");
+        vm_string Error = ConstructVMStringFromCString("fopen() failed while trying to open the file.");
+        AddErrorToErrorList(ErrorList, &Error);
         Result = {0};
     }
 
@@ -99,57 +104,61 @@ int main(int argc, char **argv)
                             DEFAULT_INITIAL_VM_STRING_SIZE);
     if(argc != 3)
     {
-        printf("Usage: supply the *.vm file to be translated as the first\n");
-        printf("argument, and supply the target output file as the second\n");
-        printf("argument.\n");
         vm_string Error = ConstructVMStringFromCString("Incorrect number of args supplied to program");
         AddErrorToErrorList(ErrorList, &Error);
-
-        return(1);
-    }
-    char *InputFileName = argv[1];
-    char *OutputFileName = argv[2];
-
-    read_file_result InputFileContents = ReadEntireFile(InputFileName);
-    if(InputFileContents.Length > 0)
-    {
-        GlobalProgramName = 
-            RetrieveProgramNameFromInputFileName(InputFileName);
-        // TODO(Marko): Check for null termination!
-        vm_string VMInput = {0};
-        VMInput.Contents = InputFileContents.Contents;
-        VMInput.CurrentLength = InputFileContents.Length;
-        VMInput.MemorySize = VMInput.CurrentLength; 
-
-        vm_string *ASMOutputBuffer = 
-            AllocateVMString(INITIAL_ASM_OUTPUT_STRING_SIZE);
-
-        instruction_counts InstructionCounts = {0};
-
-        vm_string *ASMInstructions = 
-            AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
-
-        vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
-                                               DEFAULT_INITIAL_VM_STRING_SIZE);
-
-        TranslateVMInstructionsToASM(&VMInput, 
-                                     ASMOutputBuffer, 
-                                     &InstructionCounts,
-                                     ASMInstructions,
-                                     VMTokens);
-
-
-        WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
-        FreeVMString(ASMOutputBuffer);
-        FreeVMString(ASMInstructions);
-        FreeVMTokens(VMTokens);
-        FreeProgramName(GlobalProgramName);
     }
     else
     {
-        InvalidCodePath;
+        char *InputFileName = argv[1];
+        char *OutputFileName = argv[2];        
+        read_file_result InputFileContents = ReadEntireFile(InputFileName,
+                                                            ErrorList);
+        if(InputFileContents.Length > 0)
+        {
+            GlobalProgramName = 
+                RetrieveProgramNameFromInputFileName(InputFileName);
+            // TODO(Marko): Check for null termination!
+            vm_string VMInput = {0};
+            VMInput.Contents = InputFileContents.Contents;
+            VMInput.CurrentLength = InputFileContents.Length;
+            VMInput.MemorySize = VMInput.CurrentLength; 
+
+            vm_string *ASMOutputBuffer = 
+                AllocateVMString(INITIAL_ASM_OUTPUT_STRING_SIZE);
+
+            instruction_counts InstructionCounts = {0};
+
+            vm_string *ASMInstructions = 
+                AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
+
+            vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
+                                                   DEFAULT_INITIAL_VM_STRING_SIZE);
+
+            TranslateVMInstructionsToASM(&VMInput, 
+                                         ASMOutputBuffer, 
+                                         &InstructionCounts,
+                                         ASMInstructions,
+                                         VMTokens);
+
+            WriteVMStringToFile(ASMOutputBuffer, OutputFileName);
+            FreeVMString(ASMOutputBuffer);
+            FreeVMString(ASMInstructions);
+            FreeVMTokens(VMTokens);
+            FreeProgramName(GlobalProgramName);
+        }
+        else
+        {
+            vm_string Error = ConstructVMStringFromCString("ReadEntireFile returned a read_file_result with length 0 (empty file?)");
+            AddErrorToErrorList(ErrorList, &Error);
+        }
+        FreeEntireFileMemory(InputFileContents); 
     }
-    FreeEntireFileMemory(InputFileContents); 
+    
+    if(ErrorList->ErrorsWrittenCount > 0)
+    {
+        PrintErrorsToConsole(ErrorList);
+    }
+
 
     return(0);
 }

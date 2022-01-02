@@ -19,5 +19,7 @@ void AddErrorToErrorList(vm_error_list *ErrorList,
 vm_error_list *InitializeErrorList(uint32 MaxErrorCount, 
                                    uint32 ErrorVMStringSize);
 
+void PrintErrorsToConsole(vm_error_list *ErrorList);
+
 #define VM_ERROR_H
 #endif
