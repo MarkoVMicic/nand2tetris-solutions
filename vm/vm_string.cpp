@@ -19,6 +19,21 @@ inline bool32 IsCharNumber(char Char)
 }
 
 
+bool32 IsNumericVMString(vm_string *VMString)
+{
+    bool32 Result = true;
+    for(uint32 Index = 0; Index < VMString->CurrentLength; Index++)
+    {
+        if(!IsCharNumber(VMString->Contents[Index]))
+        {
+            Result = false;
+        }
+    }
+
+    return(Result);
+}
+
+
 // TODO(Marko): Find a place to put this Pow function
 // TODO(Marko): Can make this a lot better using square and multiply algorithm 
 //              on the bits than this multiply but it's probably not that 
