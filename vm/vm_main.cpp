@@ -247,7 +247,8 @@ int main(int argc, char **argv)
                 AllocateVMString(DEFAULT_INITIAL_VM_STRING_SIZE);
 
             vm_tokens *VMTokens = AllocateVMTokens(MAX_VM_TOKEN_COUNT, 
-                                                   DEFAULT_INITIAL_VM_STRING_SIZE);
+                                                   DEFAULT_INITIAL_VM_STRING_SIZE,
+                                                   ErrorList);
 
             TranslateVMInstructionsToASM(&VMInput, 
                                          ASMOutputBuffer, 

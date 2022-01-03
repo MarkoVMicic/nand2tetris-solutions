@@ -24,11 +24,13 @@ struct vm_tokens
 void FreeVMTokens(vm_tokens *VMTokens);
 
 vm_tokens *AllocateVMTokens(uint32 TokenCount, 
-                            uint32 TokenVMStringSize);
+                            uint32 TokenVMStringSize,
+                            vm_error_list *ErrorList);
 
 void ParseTokensToASM(vm_tokens *VMTokens,
                       vm_string *ASMInstructions,
-                      instruction_counts *InstructionCounts);
+                      instruction_counts *InstructionCounts,
+                      vm_error_list *ErrorList);
 
 void TokenizeLine(vm_string *VMInputString,
                   uint32 *InputIndex,

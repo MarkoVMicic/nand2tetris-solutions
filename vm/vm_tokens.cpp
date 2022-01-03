@@ -16,25 +16,47 @@ void FreeVMTokens(vm_tokens *VMTokens)
     free(VMTokens);
 }
 
-vm_tokens *AllocateVMTokens(uint32 TokenCount, uint32 TokenVMStringSize)
+vm_tokens *AllocateVMTokens(uint32 TokenCount, 
+                            uint32 TokenVMStringSize, 
+                            vm_error_list *ErrorList)
 {
     vm_tokens *Result = (vm_tokens *)malloc(sizeof(vm_tokens));
-    Result->VMTokens = (vm_string *)malloc(TokenCount*sizeof(vm_string));
-    Result->VMTokenCount = TokenCount;
-    for(uint32 TokenIndex = 0; TokenIndex < Result->VMTokenCount; TokenIndex++)
+    if(Result != 0)
     {
-        vm_string *CurrentString = 
-            AllocateVMString(TokenVMStringSize);
-        Result->VMTokens[TokenIndex] = *CurrentString;
+        Result->VMTokens = (vm_string *)malloc(TokenCount*sizeof(vm_string));
+        if(Result->VMTokens != 0)
+        {
+             Result->VMTokenCount = TokenCount;
+            for(uint32 TokenIndex = 0; 
+                TokenIndex < Result->VMTokenCount; 
+                TokenIndex++)
+            {
+                vm_string *CurrentString = 
+                    AllocateVMString(TokenVMStringSize);
+                Result->VMTokens[TokenIndex] = *CurrentString;
+            }
+        }
+        else
+        {
+            vm_string Error = ConstructVMStringFromCString("malloc failed while allocating array of vm_string pointers in VMTokens.");
+            AddErrorToErrorList(ErrorList, &Error);
+        }
     }
+    else
+    {
+        vm_string Error = ConstructVMStringFromCString("malloc failed while allocating vm_token struct.");
+        AddErrorToErrorList(ErrorList, &Error);
+    }
+    
 
-    return(Result)
-;}
+    return(Result);
+}
 
 
 internal void ParsePopCommand(vm_tokens *VMTokens,
                               vm_string *ASMInstructions,
-                              instruction_counts *InstructionCounts)
+                              instruction_counts *InstructionCounts,
+                              vm_error_list *ErrorList)
 {
     Assert(VMTokens->VMTokenCount == 3);
 
@@ -244,8 +266,9 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &ConstantString))
     {
-        // NOTE(Marko): "pop constant i" is not valid. 
-        InvalidCodePath;
+        vm_string Error = ConstructVMStringFromCString("pop constant i is an invalid command.");
+        AddErrorToErrorList(ErrorList, &Error);
+        ASMInstructions->CurrentLength = 0;
     }
     else if(VMStringsAreEqual(&VMStringPopSegment, &ThisString))
     {
@@ -405,7 +428,12 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
         }
         else
         {
-            InvalidCodePath;
+            // TODO(Marko): Restructure to avoid early return?
+            vm_string Error = ConstructVMStringFromCString("pop pointer number incorrect: expected 0 or 1.");
+            AddErrorToErrorList(ErrorList, &Error);
+            ASMInstructions->CurrentLength = 0;
+            // NOTE(Marko): Early return here!
+            return;
         }
 
         vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@");
@@ -466,8 +494,12 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
             TEMP_ADDRESS_START + VMStringToUInt32(&VMStringPopValue);
         if(PopAddressValue > TEMP_ADDRESS_END)
         {
-            // NOTE(Marko): PopAddressValue is not valid.
-            InvalidCodePath;
+            // TODO(Marko): Restructure to avoid early return? 
+            vm_string Error = ConstructVMStringFromCString("pop temp number was invalid. Expected 0,1,2,3,4,5,6, or 7.");
+            AddErrorToErrorList(ErrorList, &Error);
+            ASMInstructions->CurrentLength = 0;
+            // NOTE(Marko): Early Return here! 
+            return;
         }
         vm_string VMStringPopAddress = UInt32ToVMString(PopAddressValue);
 
@@ -513,14 +545,17 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
     else
     {
-        InvalidCodePath;
+        vm_string Error = ConstructVMStringFromCString("Unknown segment found while parsing pop command.");
+        AddErrorToErrorList(ErrorList, &Error);
+        ASMInstructions->CurrentLength = 0;
     }
 }                              
 
 
 internal void ParsePushCommand(vm_tokens *VMTokens, 
                                vm_string *ASMInstructions,
-                               instruction_counts *InstructionCounts)
+                               instruction_counts *InstructionCounts,
+                               vm_error_list *ErrorList)
 {
     Assert(VMTokens->VMTokenCount == 3);
 
@@ -904,7 +939,7 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
         */
         vm_string ZeroString = ConstructVMStringFromCString("0");
         vm_string OneString = ConstructVMStringFromCString("1");
-        vm_string BaseAddress;
+        vm_string BaseAddress = {0};
         if(VMStringsAreEqual(&VMStringPushValue, &ZeroString))
         {
             BaseAddress = ConstructVMStringFromCString("THIS");
@@ -915,7 +950,12 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
         }
         else
         {
-            InvalidCodePath;
+            // TODO(Marko): Perhaps restructure to avoid this early return. 
+            vm_string Error = ConstructVMStringFromCString("push pointer number incorrect (wasn't 0 or 1).");
+            AddErrorToErrorList(ErrorList, &Error);
+            ASMInstructions->CurrentLength = 0;
+            // NOTE(Marko): Early return here! 
+            return;
         }
 
         vm_string FirstPart = ConstructVMStringFromCString("@");
@@ -977,8 +1017,12 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
             TEMP_ADDRESS_START + VMStringToUInt32(&VMStringPushValue);
         if(PushAddressValue > TEMP_ADDRESS_END)
         {
-            // NOTE(Marko): PushAddressValue is not valid.
-            InvalidCodePath;
+            // TODO(Marko): Perhaps restructure to avoid this early return. 
+            vm_string Error = ConstructVMStringFromCString("push temp had an invalid address. Expected 0,1,2,3,4,5,6 or 7.");
+            AddErrorToErrorList(ErrorList, &Error);
+            ASMInstructions->CurrentLength = 0;
+            // NOTE(Marko): Early return here! 
+            return;
         }
         vm_string VMStringPushAddress = UInt32ToVMString(PushAddressValue);
 
@@ -1023,22 +1067,28 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     }
     else
     {
-        InvalidCodePath;
+        vm_string Error = ConstructVMStringFromCString("Unknown segment found while parsing push command.");
+        AddErrorToErrorList(ErrorList, &Error);
+        ASMInstructions->CurrentLength = 0;
     }
 
 }
 
 
-internal void ParseReturnCommand(vm_string *ASMInstructions)
+internal void ParseReturnCommand(vm_string *ASMInstructions,
+                                 vm_error_list *ErrorList)
 {
     // TODO(Marko): Implement
-    InvalidCodePath;
+    vm_string Error = ConstructVMStringFromCString("return command parsing not yet implemented. ");
+    AddErrorToErrorList(ErrorList, &Error);
+    ASMInstructions->CurrentLength = 0;
 }
 
 
 internal void ParseArithmeticCommand(vm_tokens *VMTokens, 
                                      vm_string *ASMInstructions,
-                                     instruction_counts *InstructionCounts)
+                                     instruction_counts *InstructionCounts,
+                                     vm_error_list *ErrorList)
 {
     Assert(VMTokens->VMTokenCount == 1);
     vm_string VMStringArithmeticCommand = VMTokens->VMTokens[0];
@@ -1741,13 +1791,17 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
     }
     else
     {
-        InvalidCodePath;
+       
+        vm_string Error = ConstructVMStringFromCString("Unknown token found while trying to parse arithmetic commands.");
+        AddErrorToErrorList(ErrorList, &Error);
+        ASMInstructions->CurrentLength = 0;
     }
 }
 
 void ParseTokensToASM(vm_tokens *VMTokens,
                       vm_string *ASMInstructions,
-                      instruction_counts *InstructionCounts)
+                      instruction_counts *InstructionCounts,
+                      vm_error_list *ErrorList)
 {
     vm_string ReturnString = ConstructVMStringFromCString("return");
     vm_string PushString = ConstructVMStringFromCString("push");
@@ -1776,13 +1830,14 @@ void ParseTokensToASM(vm_tokens *VMTokens,
             
             if(VMStringsAreEqual(&VMTokens->VMTokens[0], &ReturnString))
             {
-                ParseReturnCommand(ASMInstructions);
+                ParseReturnCommand(ASMInstructions, ErrorList);
             }
             else
             {
                 ParseArithmeticCommand(VMTokens, 
                                        ASMInstructions, 
-                                       InstructionCounts);
+                                       InstructionCounts,
+                                       ErrorList);
             }
         } break;
 
@@ -1795,17 +1850,18 @@ void ParseTokensToASM(vm_tokens *VMTokens,
         {
             if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PushString))
             {
-                ParsePushCommand(VMTokens, ASMInstructions, InstructionCounts);
+                ParsePushCommand(VMTokens, ASMInstructions, InstructionCounts, ErrorList);
             }
             else if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PopString))
             {
-                ParsePopCommand(VMTokens, ASMInstructions, InstructionCounts);
+                ParsePopCommand(VMTokens, ASMInstructions, InstructionCounts, ErrorList);
             }
 
         } break;
 
         default:
         {
+            // NOTE(Marko): Should never reach this part of the code. 
             InvalidCodePath; 
         }
     }
@@ -1845,6 +1901,7 @@ void TokenizeLine(vm_string *VMInputString,
         //              of time 
         vm_string Error = ConstructVMStringFromCString("Too many tokens found.");
         AddErrorToErrorList(ErrorList, &Error);
+        VMTokens->VMTokenCount = 0;
     }
     else
     {

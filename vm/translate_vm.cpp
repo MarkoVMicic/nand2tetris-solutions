@@ -34,9 +34,14 @@ internal void TranslateLine(vm_string *VMInputString,
 
     TokenizeLine(VMInputString, InputIndex, VMTokens, ErrorList);
 
-    ParseTokensToASM(VMTokens, ASMInstructions, InstructionCounts);
-
-    WriteToASMOutput(ASMInstructions, ASMOutputString, OutputIndex);
+    if(VMTokens->VMTokenCount > 0)
+    {
+        ParseTokensToASM(VMTokens, ASMInstructions, InstructionCounts, ErrorList);
+    }
+    if(ASMInstructions->CurrentLength > 0)
+    {
+        WriteToASMOutput(ASMInstructions, ASMOutputString, OutputIndex);
+    }
 
     // NOTE(Marko): Reset VMTokens by setting each of the vm_strings to have 0 
     //              length
@@ -45,6 +50,7 @@ internal void TranslateLine(vm_string *VMInputString,
         TokenIndex++)
     {
         VMTokens->VMTokens[TokenIndex].CurrentLength = 0;
+        VMTokens->VMTokenCount = 0;
     }
     // NOTE(Marko): Reset ASMInstructions by setting its length to 0
     ASMInstructions->CurrentLength = 0;
