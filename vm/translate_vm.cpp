@@ -107,6 +107,16 @@ void TranslateVMInstructionsToASM(vm_string *VMInputString,
                 ErrorList->CurrentLineCount++;
             } break;
 
+            case WHITESPACE:
+            {
+                // NOTE(Marko): Ignore whitespace
+            } break;
+
+            case TAB:
+            {
+                // NOTE(Marko): Ignore tabs
+            };
+
             default:
             {
                 TranslateLine(VMInputString, 
