@@ -1,0 +1,54 @@
+// This filename is to test incorrect filename extension logging (i.e. 
+// something other than *.vm)
+
+// Some normal code that should work without errors. (Except that static 
+// writes that the file was not found as the variable name)
+push constant 69
+pop static 5
+push constant 420
+pop static 6
+push static 6
+push static 5
+add
+pop static 0
+
+// Next line is just a floating slash. 
+/
+
+
+// Next line contains too many tokens
+push constant 6 9
+
+// Next line contains non-numerical 3rd token
+push static test
+
+// Next line contains an unrecognized command
+psh temp 5
+
+// unrecognized single token which gets parsed as an arithmetic command 
+// because it's not "return"
+test
+
+// Floating return symbol
+return
+
+// Next line contains unrecognized push segment
+push argment 5
+
+// Next line contains invalid push temp number
+push temp 9
+
+// Next line contains invalid push pointer number
+push pointer 7
+
+// Next line contains unrecognized pop segment
+pop lcal 13
+
+// Next line contains invalid pop temp number
+pop temp 8
+
+// Next line contains invalid pop pointer number
+pop pointer 3
+
+// Next line contains pop constant i which is invalid
+pop constant 420

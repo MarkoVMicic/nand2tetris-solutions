@@ -6,3 +6,5 @@ assembler/build/*
 assembler/windows_assembler/build/*
 *.obj
 *.exe
+vm/build/*
+sublime.bat
