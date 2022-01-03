@@ -3,7 +3,7 @@
 #include "vm_string.h"
 
 
-#define INITIAL_ERROR_ALLOCATION_AMOUNT 16
+#define INITIAL_ERROR_ALLOCATION_AMOUNT 32
 
 struct vm_error_list
 {
