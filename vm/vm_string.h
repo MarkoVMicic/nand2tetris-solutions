@@ -17,6 +17,8 @@ struct vm_string
     uint32 MemorySize;  
 };
 
+bool32 IsNumericVMString(vm_string *VMString);
+
 uint32 VMStringToUInt32(vm_string *VMString);
 
 vm_string UInt32ToVMString(uint32 UInt32);

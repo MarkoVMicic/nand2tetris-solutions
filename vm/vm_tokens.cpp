@@ -1848,13 +1848,35 @@ void ParseTokensToASM(vm_tokens *VMTokens,
 
         case 3:
         {
-            if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PushString))
+            if(IsNumericVMString(&VMTokens->VMTokens[2]))
             {
-                ParsePushCommand(VMTokens, ASMInstructions, InstructionCounts, ErrorList);
+                if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PushString))
+                {
+                    ParsePushCommand(VMTokens, 
+                                     ASMInstructions, 
+                                     InstructionCounts, 
+                                     ErrorList);
+                }
+                else if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PopString))
+                {
+                    ParsePopCommand(VMTokens, 
+                                    ASMInstructions, 
+                                    InstructionCounts, 
+                                    ErrorList);
+                }
+                else
+                {
+                    vm_string Error = ConstructVMStringFromCString("Unrecognized command while trying to parse 3 tokens. ");
+                    AddErrorToErrorList(ErrorList, &Error);
+                    ASMInstructions->CurrentLength = 0;
+                }                
             }
-            else if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PopString))
+            else
             {
-                ParsePopCommand(VMTokens, ASMInstructions, InstructionCounts, ErrorList);
+                // NOTE(Marko): This *might* change in project 8
+                vm_string Error = ConstructVMStringFromCString("While parsing 3 tokens, encountered non-numerical third token, which is invalid");
+                    AddErrorToErrorList(ErrorList, &Error);                
+                    ASMInstructions->CurrentLength = 0;
             }
 
         } break;
@@ -1902,6 +1924,14 @@ void TokenizeLine(vm_string *VMInputString,
         vm_string Error = ConstructVMStringFromCString("Too many tokens found.");
         AddErrorToErrorList(ErrorList, &Error);
         VMTokens->VMTokenCount = 0;
+
+        // NOTE(Marko): Advance InputIndex to end of line
+        CurrentChar = &VMInputString->Contents[*InputIndex];
+        while(*CurrentChar != NEWLINE)
+        {
+            CurrentChar++;
+            (*InputIndex)++;
+        }
     }
     else
     {
