@@ -11,6 +11,18 @@ push static 6
 push static 5
 add
 pop static 0
+push constant 6
+push constant 6
+eq
+pop lcl 0
+push constant 6
+push constant 6
+gt
+pop lcl 1
+push constant 6
+push constant 6
+lt
+pop lcl 2
 
 // Next line is just a floating slash. 
 /

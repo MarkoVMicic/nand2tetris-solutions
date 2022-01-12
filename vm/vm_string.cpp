@@ -100,6 +100,9 @@ uint32 VMStringToUInt32(vm_string *VMString)
 
 vm_string UInt32ToVMString(uint32 UInt32)
 {
+    // NOTE(Marko): This heap allocates Result.Contents, even though Result 
+    //              itself lives on the stack. Must be paired with 
+    //              FreeVMStringContents().
     vm_string Result;
     uint32 N = UInt32;
     uint32 DigitCount = 0;
@@ -190,8 +193,20 @@ void GrowVMString(vm_string *VMString)
 }
 
 
+void FreeVMStringContents(vm_string *VMString)
+{
+    // NOTE(Marko): Used for freeing vm_strings that were declared on the 
+    //              stack, but whose Contents are heap allocated.
+    free(VMString->Contents);
+
+
+}
+
+
 void FreeVMString(vm_string *VMString)
 {
+    // NOTE(Marko): Used for freeing vm strings that are heap allocated, and 
+    //              whose Contents are also heap allocated. 
     free(VMString->Contents);
     free(VMString);
 }
@@ -249,6 +264,10 @@ uint32 StringLength(const char *String)
 
 vm_string ConstructVMStringFromCString(const char *String)
 {
+    // NOTE(Marko): This should be used only with Strings that are written on 
+    //              the stack. This returns a vm_string that lives on the 
+    //              stack, and so it doesn't need to be freed -- when it goes 
+    //              out of scope it'll automatically release the memory
     vm_string Result;
     Result.Contents = (char *)String;
     Result.CurrentLength = StringLength(String);

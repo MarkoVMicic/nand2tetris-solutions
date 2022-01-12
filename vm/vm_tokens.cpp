@@ -63,14 +63,14 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     vm_string VMStringPopSegment = VMTokens->VMTokens[1];
     vm_string VMStringPopValue = VMTokens->VMTokens[2];
 
-    vm_string ArgumentString = {"argument",8,9};
-    vm_string LocalString = {"local",5,6};
-    vm_string StaticString = {"static",6,7};
-    vm_string ConstantString = {"constant",8,9};
-    vm_string ThisString = {"this",4,5};
-    vm_string ThatString = {"that",4,5};
-    vm_string PointerString = {"pointer",7,8};
-    vm_string TempString = {"temp",4,5};
+    vm_string ArgumentString = ConstructVMStringFromCString("argument");
+    vm_string LocalString = ConstructVMStringFromCString("local");
+    vm_string StaticString = ConstructVMStringFromCString("static");
+    vm_string ConstantString = ConstructVMStringFromCString("constant");
+    vm_string ThisString = ConstructVMStringFromCString("this");
+    vm_string ThatString = ConstructVMStringFromCString("that");
+    vm_string PointerString = ConstructVMStringFromCString("pointer");
+    vm_string TempString = ConstructVMStringFromCString("temp");
 
     // TODO(Marko): Bounds checking to make sure that VMStringPopValue corresponds to a valid address (i.e. does not go out of bounds)
     if(VMStringsAreEqual(&VMStringPopSegment, &ArgumentString))
@@ -562,14 +562,15 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
     vm_string VMStringPushSegment = VMTokens->VMTokens[1];
     vm_string VMStringPushValue = VMTokens->VMTokens[2];
 
-    vm_string ArgumentString = {"argument",8,9};
-    vm_string LocalString = {"local",5,6};
-    vm_string StaticString = {"static",6,7};
-    vm_string ConstantString = {"constant",8,9};
-    vm_string ThisString = {"this",4,5};
-    vm_string ThatString = {"that",4,5};
-    vm_string PointerString = {"pointer",7,8};
-    vm_string TempString = {"temp",4,5};
+    vm_string ArgumentString = ConstructVMStringFromCString("argument");
+    vm_string LocalString = ConstructVMStringFromCString("local");
+    vm_string StaticString = ConstructVMStringFromCString("static");
+    vm_string ConstantString = ConstructVMStringFromCString("constant");
+    vm_string ThisString = ConstructVMStringFromCString("this");
+    vm_string ThatString = ConstructVMStringFromCString("that");
+    vm_string PointerString = ConstructVMStringFromCString("pointer");
+    vm_string TempString = ConstructVMStringFromCString("temp");
+
     if(VMStringsAreEqual(&VMStringPushSegment, &ArgumentString))
     {
         /* NOTE(Marko): "push argument X" translates to
@@ -1255,6 +1256,8 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         162 characters.
                         There are 6 slots in which to place the EqCount. 
         */
+        // NOTE(Marko): EqCountString.Contents is heap allocated. Must call 
+        //              FreeVMStringContents().
         vm_string EqCountString = UInt32ToVMString(InstructionCounts->EqCount);
         vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_EQUAL_");
         vm_string SecondPart = ConstructVMStringFromCString("\nD;JNE\n(EQUAL_");
@@ -1369,6 +1372,7 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         }
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
         InstructionCounts->EqCount++;
+        FreeVMStringContents(&EqCountString);
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &GtString))
     {
@@ -1418,6 +1422,9 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         There are 6 slots in which to place the 
                         GtCount.        
         */
+        
+        // NOTE(Marko): GtCountString.Contents is heap allocated. Must call 
+        //              FreeVMStringContents().
         vm_string GtCountString = UInt32ToVMString(InstructionCounts->GtCount);
         vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_GT_");
         vm_string SecondPart = ConstructVMStringFromCString("\nD;JLE\n(GT_");
@@ -1532,8 +1539,8 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         }
 
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-
         InstructionCounts->GtCount++;
+        FreeVMStringContents(&GtCountString);
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &LtString))
     {
@@ -1583,6 +1590,9 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
                         There are 6 slots in which to place the 
                         LtCount.        
         */
+        
+        // NOTE(Marko): LtCountstring.Contents is heap allocated. Must call 
+        //              FreeVMStringContents()
         vm_string LtCountString = UInt32ToVMString(InstructionCounts->LtCount);
         vm_string FirstPart = ConstructVMStringFromCString("@SP\nM=M-1\nA=M\nD=M\n@SP\nM=M-1\nA=M\nD=M-D\n@NOT_LT_");
         vm_string SecondPart = ConstructVMStringFromCString("\nD;JGE\n(LT_");
@@ -1697,8 +1707,8 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
         }
 
         ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
-
         InstructionCounts->LtCount++;
+        FreeVMStringContents(&LtCountString);
     }
     else if(VMStringsAreEqual(&VMStringArithmeticCommand, &AndString))
     {

@@ -33,6 +33,8 @@ bool32 VMStringsAreEqual(vm_string *VMStringA,
                          char *StringB, 
                          uint32 StringBLength);
 
+void FreeVMStringContents(vm_string *VMString);
+
 void FreeVMString(vm_string *VMString);
 
 vm_string *AllocateVMString(uint32 MemoryBlockSize);
