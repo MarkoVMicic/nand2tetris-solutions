@@ -83,6 +83,9 @@ struct instruction_counts
     uint32 AndCount;
     uint32 OrCount;
     uint32 NotCount;
+
+    // Branching command counts
+    uint32 LabelCount;
 };
 
 
