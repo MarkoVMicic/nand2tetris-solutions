@@ -27,6 +27,8 @@ pop lcl 2
 // Next line is just a floating slash. 
 /
 
+// Next line looks ok but has a floating slash! 
+push constant 420 / / pathological comment!
 
 // Next line contains too many tokens
 push constant 6 9

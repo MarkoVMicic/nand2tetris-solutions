@@ -2118,6 +2118,7 @@ void TokenizeLine(vm_string *VMInputString,
     //
     uint32 TokenCount = 0;
     bool32 HadInlineComment = 0;
+    bool32 HadError = 0;
     char *CurrentChar = &VMInputString->Contents[*InputIndex];
     while(*CurrentChar != NEWLINE)
     {
@@ -2132,6 +2133,22 @@ void TokenizeLine(vm_string *VMInputString,
             }
             break;
         }
+        else if(*CurrentChar == COMMENT_SLASH)
+        {
+            // NOTE(Marko): Floating slash is an error
+            HadError = 1;
+            vm_string Error = ConstructVMStringFromCString("Floating slash found while tokenizing line.");
+            AddErrorToErrorList(ErrorList, &Error);
+            VMTokens->VMTokenCount = 0;
+            // NOTE(Marko): Advance InputIndex to end of line
+            CurrentChar = &VMInputString->Contents[*InputIndex];
+            while(*CurrentChar != NEWLINE)
+            {
+                CurrentChar++;
+                (*InputIndex)++;
+            }
+            break;
+        }
         else if(*CurrentChar == WHITESPACE && *(CurrentChar + 1) != WHITESPACE)
         {
             TokenCount++;
@@ -2139,8 +2156,9 @@ void TokenizeLine(vm_string *VMInputString,
         CurrentChar++;
     }
     // NOTE(Marko): If the final token is right next to \n, we need to add one 
-    //              more to TokenCount
-    if(*(CurrentChar-1) != WHITESPACE)
+    //              more to TokenCount. If we ended with an inline comment 
+    //              then we don't want to increment TokenCount
+    if(*(CurrentChar-1) != WHITESPACE && !HadInlineComment && !HadError)
     {
         TokenCount++;
     }
