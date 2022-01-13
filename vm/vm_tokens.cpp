@@ -2157,7 +2157,7 @@ void TokenizeLine(vm_string *VMInputString,
         // NOTE(Marko): Putting tokens into vm_tokens struct. 
         CurrentChar = &VMInputString->Contents[*InputIndex];
         uint32 TokenIndex = 0;
-        while(*CurrentChar != NEWLINE)
+        while((*CurrentChar != NEWLINE) && (TokenIndex < VMTokens->VMTokenCount))
         {
             char *CurrentTokenBegin = CurrentChar;
             while((*CurrentChar != WHITESPACE) && (*CurrentChar != NEWLINE))
