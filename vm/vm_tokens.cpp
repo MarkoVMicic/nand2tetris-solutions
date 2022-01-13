@@ -2117,10 +2117,22 @@ void TokenizeLine(vm_string *VMInputString,
     // NOTE(Marko): Counting how many tokens on the line. 
     //
     uint32 TokenCount = 0;
+    bool32 HadInlineComment = 0;
     char *CurrentChar = &VMInputString->Contents[*InputIndex];
     while(*CurrentChar != NEWLINE)
     {
-        if(*CurrentChar == WHITESPACE && *(CurrentChar + 1) != WHITESPACE)
+        if((*CurrentChar == COMMENT_SLASH) && 
+           (*(CurrentChar + 1) == COMMENT_SLASH))
+        {
+            // NOTE(Marko): inline comment found: ignore until newline.
+            HadInlineComment = 1;
+            while(*CurrentChar != NEWLINE)
+            {
+                CurrentChar++;
+            }
+            break;
+        }
+        else if(*CurrentChar == WHITESPACE && *(CurrentChar + 1) != WHITESPACE)
         {
             TokenCount++;
         }
