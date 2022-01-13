@@ -87,6 +87,7 @@ struct instruction_counts
     // Branching command counts
     uint32 LabelCount;
     uint32 GotoCount;
+    uint32 IfGotoCount;
 };
 
 
