@@ -2120,15 +2120,18 @@ void TokenizeLine(vm_string *VMInputString,
     char *CurrentChar = &VMInputString->Contents[*InputIndex];
     while(*CurrentChar != NEWLINE)
     {
-        if(*CurrentChar == WHITESPACE)
+        if(*CurrentChar == WHITESPACE && *(CurrentChar + 1) != WHITESPACE)
         {
             TokenCount++;
         }
         CurrentChar++;
     }
-    // NOTE(Marko): Final token is deliniated using \n so add one more to 
-    //              TokenCount
-    TokenCount++;
+    // NOTE(Marko): If the final token is right next to \n, we need to add one 
+    //              more to TokenCount
+    if(*(CurrentChar-1) != WHITESPACE)
+    {
+        TokenCount++;
+    }
 
     if(TokenCount > MAX_VM_TOKEN_COUNT)
     {
