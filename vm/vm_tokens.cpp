@@ -2149,7 +2149,8 @@ void TokenizeLine(vm_string *VMInputString,
             }
             break;
         }
-        else if(*CurrentChar == WHITESPACE && *(CurrentChar + 1) != WHITESPACE)
+        else if(((*CurrentChar == WHITESPACE) || (*CurrentChar == TAB)) && 
+                *(CurrentChar + 1) != WHITESPACE)
         {
             TokenCount++;
         }
@@ -2190,7 +2191,9 @@ void TokenizeLine(vm_string *VMInputString,
         while((*CurrentChar != NEWLINE) && (TokenIndex < VMTokens->VMTokenCount))
         {
             char *CurrentTokenBegin = CurrentChar;
-            while((*CurrentChar != WHITESPACE) && (*CurrentChar != NEWLINE))
+            while((*CurrentChar != WHITESPACE) && 
+                  (*CurrentChar != TAB) &&
+                  (*CurrentChar != NEWLINE))
             {
                 (*InputIndex)++;
                 CurrentChar++;
