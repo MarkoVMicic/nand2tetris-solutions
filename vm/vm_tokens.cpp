@@ -1861,6 +1861,60 @@ internal void ParseLabelCommand(vm_tokens *VMTokens,
     ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
     InstructionCounts->LabelCount++;
 } 
+
+
+internal void ParseGotoCommand(vm_tokens *VMTokens,
+                               vm_string *ASMInstructions,
+                               instruction_counts *InstructionCounts,
+                               vm_error_list *ErrorList)
+{
+    /* NOTE(Marko): "goto <label>" corresponds to
+
+                        @<label>
+                        0;JMP
+    */
+
+    vm_string LabelString = VMTokens->VMTokens[1];
+    vm_string FirstPart = ConstructVMStringFromCString("@");
+    vm_string SecondPart = ConstructVMStringFromCString("\n0;JMP\n");
+
+    ASMInstructions->CurrentLength = 
+        FirstPart.CurrentLength + 
+        SecondPart.CurrentLength +
+        LabelString.CurrentLength;
+    if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+    {
+        GrowVMString(ASMInstructions);
+    }
+    {
+        char *PasteCharLocation = ASMInstructions->Contents;
+        uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+        CopyVMString(FirstPart.Contents,
+                     FirstPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FirstPart.CurrentLength;
+        LengthRemaining -= FirstPart.CurrentLength;
+
+        CopyVMString(LabelString.Contents,
+                     LabelString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += LabelString.CurrentLength;
+        LengthRemaining -= LabelString.CurrentLength;
+
+        CopyVMString(SecondPart.Contents,
+                     SecondPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SecondPart.CurrentLength;
+        LengthRemaining -= SecondPart.CurrentLength;
+    }
+
+    ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+    InstructionCounts->GotoCount++;
+}
                                
 
 void ParseTokensToASM(vm_tokens *VMTokens,
@@ -1871,6 +1925,7 @@ void ParseTokensToASM(vm_tokens *VMTokens,
     vm_string ReturnString = ConstructVMStringFromCString("return");
     vm_string PushString = ConstructVMStringFromCString("push");
     vm_string PopString = ConstructVMStringFromCString("pop");
+    vm_string GotoString = ConstructVMStringFromCString("goto");
     vm_string LabelString = ConstructVMStringFromCString("label");
 
     switch(VMTokens->VMTokenCount)
@@ -1922,6 +1977,14 @@ void ParseTokensToASM(vm_tokens *VMTokens,
                                   InstructionCounts, 
                                   ErrorList);
 
+            }
+            else if(VMStringsAreEqual(&VMTokens->VMTokens[0], &GotoString))
+            {
+                ParseGotoCommand(VMTokens, 
+                                 ASMInstructions, 
+                                 InstructionCounts, 
+                                 ErrorList);
+            }
             }
             else
             {
