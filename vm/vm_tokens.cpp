@@ -4,6 +4,9 @@
 // NOTE(Marko): global variable declared in vm_main.exe
 global_variable vm_string GlobalProgramName;
 
+//
+//  NOTE(Marko): VMTokens Memory Management
+//
 void FreeVMTokens(vm_tokens *VMTokens)
 {
     for(uint32 TokenIndex = 0;
@@ -52,6 +55,9 @@ vm_tokens *AllocateVMTokens(uint32 TokenCount,
     return(Result);
 }
 
+//
+//  NOTE(Marko): Pop Commands
+//
 
 internal void ParsePopCommand(vm_tokens *VMTokens,
                               vm_string *ASMInstructions,
@@ -551,6 +557,9 @@ internal void ParsePopCommand(vm_tokens *VMTokens,
     }
 }                              
 
+//
+//  NOTE(Marko): Push Commands
+//
 
 internal void ParsePushCommand(vm_tokens *VMTokens, 
                                vm_string *ASMInstructions,
@@ -1076,14 +1085,9 @@ internal void ParsePushCommand(vm_tokens *VMTokens,
 }
 
 
-internal void ParseReturnCommand(vm_string *ASMInstructions,
-                                 vm_error_list *ErrorList)
-{
-    // TODO(Marko): Implement
-    vm_string Error = ConstructVMStringFromCString("return command parsing not yet implemented. ");
-    AddErrorToErrorList(ErrorList, &Error);
-    ASMInstructions->CurrentLength = 0;
-}
+//
+//  NOTE(Marko): Arithmetic Commands
+//
 
 
 internal void ParseArithmeticCommand(vm_tokens *VMTokens, 
@@ -1808,6 +1812,9 @@ internal void ParseArithmeticCommand(vm_tokens *VMTokens,
     }
 }
 
+//
+// NOTE(Marko): Branching commands
+//
 
 internal void ParseLabelCommand(vm_tokens *VMTokens,
                                 vm_string *ASMInstructions,
@@ -1975,17 +1982,203 @@ internal void ParseIfGotoCommand(vm_tokens *VMTokens,
     InstructionCounts->IfGotoCount++;
 }
 
+//
+//  NOTE(Marko): Function Commands
+//
+
+internal void ParseFunctionCommand(vm_tokens *VMTokens,
+                                   vm_string *ASMInstructions,
+                                   instruction_counts *InstructionCounts,
+                                   vm_error_list *ErrorList)
+{
+    /* NOTE(Marko): "function <name> <v>" indicates the start of a 
+                    function with <v> local variables. 
+
+                    It emits a label, and initializes all local variables to 0.
+                    Note that since the caller of the function repositions LCL 
+                    to the top of the stack, we can simply push 0 to the stack 
+                    <v> times.
+                    
+                    This can be realized with
+
+                        (<name>)
+                        @<v>
+                        D=A
+                        (LOOP_<name>)
+                        @SP
+                        A=M
+                        M=0
+                        @SP
+                        M=M+1
+                        D=D-1
+                        @LOOP_<name>
+                        D;JGT
+
+                    If there are no local variables, then we can shortcut to simply emit
+
+                        (<name>)
+    */
+
+    vm_string FunctionNameString = VMTokens->VMTokens[1];
+    vm_string LocalVariableCountString = VMTokens->VMTokens[2];
+    uint32 LocalVariableCount = VMStringToUInt32(&LocalVariableCountString);
+
+    if(LocalVariableCount == 0)
+    {
+        vm_string FirstPart = ConstructVMStringFromCString("(");
+        vm_string SecondPart = ConstructVMStringFromCString(")\n");
+
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            FunctionNameString.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(FunctionNameString.Contents,
+                         FunctionNameString.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FunctionNameString.CurrentLength;
+            LengthRemaining -= FunctionNameString.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+        }
+    } // if(LocalVariableCount == 0)
+    else // if(LocalVariableCount != 0)
+    {
+        vm_string FirstPart = ConstructVMStringFromCString("(");
+        vm_string SecondPart = ConstructVMStringFromCString(")\n@");
+        vm_string ThirdPart = ConstructVMStringFromCString("\nD=A\n(LOOP_");
+        vm_string FourthPart = ConstructVMStringFromCString(")\n@SP\nA=M\nM=0\n@SP\nM=M+1\nD=D-1\n@LOOP_");
+        vm_string FifthPart = ConstructVMStringFromCString("\nD;JGT\n");
+
+        // TODO(Marko): Maybe it's better to add these lengths in the order 
+        //              they appear in the assembly string. 
+        ASMInstructions->CurrentLength = 
+            FirstPart.CurrentLength +
+            SecondPart.CurrentLength +
+            ThirdPart.CurrentLength +
+            FourthPart.CurrentLength +
+            FifthPart.CurrentLength +
+            3*FunctionNameString.CurrentLength +
+            LocalVariableCountString.CurrentLength;
+        if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+        {
+            GrowVMString(ASMInstructions);
+        }
+        {
+            char *PasteCharLocation = ASMInstructions->Contents;
+            uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+            CopyVMString(FirstPart.Contents,
+                         FirstPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FirstPart.CurrentLength;
+            LengthRemaining -= FirstPart.CurrentLength;
+
+            CopyVMString(FunctionNameString.Contents,
+                         FunctionNameString.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FunctionNameString.CurrentLength;
+            LengthRemaining -= FunctionNameString.CurrentLength;
+
+            CopyVMString(SecondPart.Contents,
+                         SecondPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += SecondPart.CurrentLength;
+            LengthRemaining -= SecondPart.CurrentLength;
+
+            CopyVMString(LocalVariableCountString.Contents,
+                         LocalVariableCountString.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += LocalVariableCountString.CurrentLength;
+            LengthRemaining -= LocalVariableCountString.CurrentLength;
+
+            CopyVMString(ThirdPart.Contents,
+                         ThirdPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += ThirdPart.CurrentLength;
+            LengthRemaining -= ThirdPart.CurrentLength;
+
+            CopyVMString(FunctionNameString.Contents,
+                         FunctionNameString.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FunctionNameString.CurrentLength;
+            LengthRemaining -= FunctionNameString.CurrentLength;
+
+            CopyVMString(FourthPart.Contents,
+                         FourthPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FourthPart.CurrentLength;
+            LengthRemaining -= FourthPart.CurrentLength;
+
+            CopyVMString(FunctionNameString.Contents,
+                         FunctionNameString.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FunctionNameString.CurrentLength;
+            LengthRemaining -= FunctionNameString.CurrentLength;
+
+            CopyVMString(FifthPart.Contents,
+                         FifthPart.CurrentLength,
+                         PasteCharLocation,
+                         LengthRemaining);
+            PasteCharLocation += FifthPart.CurrentLength;
+            LengthRemaining -= FifthPart.CurrentLength;
+        }
+    } // else // if(LocalVariableCount != 0)
+    ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+    InstructionCounts->FunctionCount++;
+}
+
+internal void ParseReturnCommand(vm_string *ASMInstructions,
+                                 vm_error_list *ErrorList)
+{
+    // TODO(Marko): Implement
+    vm_string Error = ConstructVMStringFromCString("return command parsing not yet implemented. ");
+    AddErrorToErrorList(ErrorList, &Error);
+    ASMInstructions->CurrentLength = 0;
+}
+
 void ParseTokensToASM(vm_tokens *VMTokens,
                       vm_string *ASMInstructions,
                       instruction_counts *InstructionCounts,
                       vm_error_list *ErrorList)
 {
-    vm_string ReturnString = ConstructVMStringFromCString("return");
     vm_string PushString = ConstructVMStringFromCString("push");
     vm_string PopString = ConstructVMStringFromCString("pop");
+
     vm_string GotoString = ConstructVMStringFromCString("goto");
     vm_string IfGotoString = ConstructVMStringFromCString("if-goto");
     vm_string LabelString = ConstructVMStringFromCString("label");
+
+    vm_string FunctionString = ConstructVMStringFromCString("function");
+    vm_string ReturnString = ConstructVMStringFromCString("return");
 
     switch(VMTokens->VMTokenCount)
     {
@@ -2062,6 +2255,12 @@ void ParseTokensToASM(vm_tokens *VMTokens,
 
         case 3:
         {
+            /*  NOTE(Marko): Possible VM instructions of length 3:
+                                "push segment i"
+                                "pop segment i"
+                                "function name nArgs"
+                                "call name nVars"
+            */
             if(IsNumericVMString(&VMTokens->VMTokens[2]))
             {
                 if(VMStringsAreEqual(&VMTokens->VMTokens[0], &PushString))
@@ -2078,6 +2277,14 @@ void ParseTokensToASM(vm_tokens *VMTokens,
                                     InstructionCounts, 
                                     ErrorList);
                 }
+                else if(VMStringsAreEqual(&VMTokens->VMTokens[0], 
+                                          &FunctionString))
+                {
+                    ParseFunctionCommand(VMTokens,
+                                         ASMInstructions,
+                                         InstructionCounts,
+                                         ErrorList);
+                }
                 else
                 {
                     vm_string Error = ConstructVMStringFromCString("Unrecognized command while trying to parse 3 tokens. ");
@@ -2087,7 +2294,6 @@ void ParseTokensToASM(vm_tokens *VMTokens,
             }
             else
             {
-                // NOTE(Marko): This *might* change in project 8
                 vm_string Error = ConstructVMStringFromCString("While parsing 3 tokens, encountered non-numerical third token, which is invalid");
                     AddErrorToErrorList(ErrorList, &Error);                
                     ASMInstructions->CurrentLength = 0;
