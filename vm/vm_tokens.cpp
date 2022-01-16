@@ -2156,6 +2156,296 @@ internal void ParseFunctionCommand(vm_tokens *VMTokens,
     InstructionCounts->FunctionCount++;
 }
 
+
+internal void ParseCallCommand(vm_tokens *VMTokens,
+                               vm_string *ASMInstructions,
+                               instruction_counts *InstructionCounts,
+                               vm_error_list *ErrorList)
+{
+    /*
+        NOTE(Marko): "call <name> <a>" calls the function with name <name>, 
+                      passing <a> variables as arguments. 
+
+                      Before "call <name> <a>", the vm code would have already 
+                      pushed some arguments onto the stack. 
+
+                      We then need to push the return address onto the stack, 
+                      save the LCL, ARG, THIS, and THAT state onto the stack, 
+                      reposition ARG and LCL for the called function to use, 
+                      go to the function (via a label) and finally emit a 
+                      label for the return address. 
+
+                      To do this we have
+                      
+                      // Push Return Address
+                                @RET_ADDRESS_CALLX
+                                D=A
+                                @SP
+                                A=M
+                                M=D
+                                @SP
+                                M=M+1
+                      // Save state of current function:
+                          // Push local address
+                                @LCL
+                                D=A
+                                @SP
+                                A=M
+                                M=D
+                                @SP
+                                M=M+1
+                          // Push argument address
+                                @ARG
+                                D=A
+                                @SP
+                                A=M
+                                M=D
+                                @SP
+                                M=M+1
+                          // Push this address
+                                @THIS
+                                D=A
+                                @SP
+                                A=M
+                                M=D
+                                @SP
+                                M=M+1
+                          // Push that address
+                                @THAT
+                                D=A
+                                @SP
+                                A=M
+                                M=D
+                                @SP
+                                M=M+1
+                      // Reposition ARG pointer to point to the function args
+                         // Establish loop counter: <a> + 5 (since just pushed 
+                         // 5 things onto the stack)
+                                @<a+5>
+                                D=A
+                                (ARG_LOOP_X)
+                                @SP
+                                M=M-1
+                                D=D-1
+                                @ARG_LOOP_X
+                                D;JGT
+                        // Point ARG to the first arg
+                                @SP
+                                D=M
+                                @ARG
+                                M=D
+                     // Reposition LCL pointer to point to top of stack. 
+                         // Loop back up 
+                                @<a+5>
+                                D=A
+                                (LCL_LOOP_X)
+                                @SP
+                                M=M+1
+                                D=D-1
+                                @LCL_LOOP_X
+                                D;JGT
+                         // Place LCL pointer
+                                @SP
+                                D=M
+                                @LCL
+                                M=D
+                    // Go to function <name>
+                                @<name>
+                                0;JMP
+                    // Emit return address label
+                                (RET_ADDRESS_CALLX)
+    */
+    vm_string FunctionNameString = VMTokens->VMTokens[1];
+
+    // NOTE(Marko): Compute ArgCount as 5+<a> where <a> is VMTokens[2]
+    uint32 ArgCount = VMStringToUInt32(&VMTokens->VMTokens[2]);
+    ArgCount += 5;
+    vm_string ArgCountString = UInt32ToVMString(ArgCount);
+
+    vm_string CallCountString = UInt32ToVMString(InstructionCounts->CallCount);
+
+    vm_string FirstPart = ConstructVMStringFromCString("@RET_ADDRESS_CALL");
+    vm_string SecondPart = ConstructVMStringFromCString("\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@LCL\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@ARG\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THIS\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@THAT\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n@");
+    vm_string ThirdPart = ConstructVMStringFromCString("\nD=A\n(ARG_LOOP_");
+    vm_string FourthPart = ConstructVMStringFromCString(")\n@SP\nM=M-1\nD=D-1\n@ARG_LOOP_");
+    vm_string FifthPart = ConstructVMStringFromCString("\nD;JGT\n@SP\nD=M\n@ARG\nM=D\n@");
+    vm_string SixthPart = ConstructVMStringFromCString("\nD=A\n(LCL_LOOP_");
+    vm_string SeventhPart = ConstructVMStringFromCString(")\n@SP\nM=M+1\nD=D-1\n@LCL_LOOP_");
+    vm_string EighthPart = ConstructVMStringFromCString("\nD;JGT\n@SP\nD=M\n@LCL\nM=D\n@");
+    vm_string NinthPart = ConstructVMStringFromCString("\n0;JMP\n(RET_ADDRESS_CALL");
+    vm_string TenthPart = ConstructVMStringFromCString(")\n");
+
+
+    ASMInstructions->CurrentLength = 
+        FirstPart.CurrentLength + 
+        CallCountString.CurrentLength + 
+        SecondPart.CurrentLength + 
+        ArgCountString.CurrentLength + 
+        ThirdPart.CurrentLength + 
+        CallCountString.CurrentLength + 
+        FourthPart.CurrentLength + 
+        CallCountString.CurrentLength + 
+        FifthPart.CurrentLength + 
+        ArgCountString.CurrentLength + 
+        SixthPart.CurrentLength + 
+        CallCountString.CurrentLength + 
+        SeventhPart.CurrentLength + 
+        CallCountString.CurrentLength + 
+        EighthPart.CurrentLength + 
+        FunctionNameString.CurrentLength + 
+        NinthPart.CurrentLength + 
+        CallCountString.CurrentLength + 
+        TenthPart.CurrentLength;
+
+    if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+    {
+        GrowVMString(ASMInstructions);
+    }
+    {
+        char *PasteCharLocation = ASMInstructions->Contents;
+        uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+        CopyVMString(FirstPart.Contents,
+                     FirstPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FirstPart.CurrentLength;
+        LengthRemaining -= FirstPart.CurrentLength;
+
+        CopyVMString(CallCountString.Contents,
+                     CallCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += CallCountString.CurrentLength;
+        LengthRemaining -= CallCountString.CurrentLength;
+
+        CopyVMString(SecondPart.Contents,
+                     SecondPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SecondPart.CurrentLength;
+        LengthRemaining -= SecondPart.CurrentLength;
+
+        CopyVMString(ArgCountString.Contents,
+                     ArgCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ArgCountString.CurrentLength;
+        LengthRemaining -= ArgCountString.CurrentLength;
+
+        CopyVMString(ThirdPart.Contents,
+                     ThirdPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ThirdPart.CurrentLength;
+        LengthRemaining -= ThirdPart.CurrentLength;
+
+        CopyVMString(CallCountString.Contents,
+                     CallCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += CallCountString.CurrentLength;
+        LengthRemaining -= CallCountString.CurrentLength;
+
+        CopyVMString(FourthPart.Contents,
+                     FourthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FourthPart.CurrentLength;
+        LengthRemaining -= FourthPart.CurrentLength;
+
+        CopyVMString(CallCountString.Contents,
+                     CallCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += CallCountString.CurrentLength;
+        LengthRemaining -= CallCountString.CurrentLength;
+
+        CopyVMString(FifthPart.Contents,
+                     FifthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FifthPart.CurrentLength;
+        LengthRemaining -= FifthPart.CurrentLength;
+
+        CopyVMString(ArgCountString.Contents,
+                     ArgCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ArgCountString.CurrentLength;
+        LengthRemaining -= ArgCountString.CurrentLength;
+
+        CopyVMString(SixthPart.Contents,
+                     SixthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SixthPart.CurrentLength;
+        LengthRemaining -= SixthPart.CurrentLength;
+
+        CopyVMString(CallCountString.Contents,
+                     CallCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += CallCountString.CurrentLength;
+        LengthRemaining -= CallCountString.CurrentLength;
+
+        CopyVMString(SeventhPart.Contents,
+                     SeventhPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SeventhPart.CurrentLength;
+        LengthRemaining -= SeventhPart.CurrentLength;
+
+        CopyVMString(CallCountString.Contents,
+                     CallCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += CallCountString.CurrentLength;
+        LengthRemaining -= CallCountString.CurrentLength;
+
+        CopyVMString(EighthPart.Contents,
+                     EighthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += EighthPart.CurrentLength;
+        LengthRemaining -= EighthPart.CurrentLength;
+
+        CopyVMString(FunctionNameString.Contents,
+                     FunctionNameString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FunctionNameString.CurrentLength;
+        LengthRemaining -= FunctionNameString.CurrentLength;
+
+        CopyVMString(NinthPart.Contents,
+                     NinthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += NinthPart.CurrentLength;
+        LengthRemaining -= NinthPart.CurrentLength;
+
+        CopyVMString(CallCountString.Contents,
+                     CallCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += CallCountString.CurrentLength;
+        LengthRemaining -= CallCountString.CurrentLength;
+
+        CopyVMString(TenthPart.Contents,
+                     TenthPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += TenthPart.CurrentLength;
+        LengthRemaining -= TenthPart.CurrentLength;
+    }
+    ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+    InstructionCounts->CallCount++;
+
+    FreeVMStringContents(&CallCountString);
+    FreeVMStringContents(&ArgCountString);
+}
+
+
 internal void ParseReturnCommand(vm_string *ASMInstructions,
                                  vm_error_list *ErrorList)
 {
@@ -2178,6 +2468,7 @@ void ParseTokensToASM(vm_tokens *VMTokens,
     vm_string LabelString = ConstructVMStringFromCString("label");
 
     vm_string FunctionString = ConstructVMStringFromCString("function");
+    vm_string CallString = ConstructVMStringFromCString("call");
     vm_string ReturnString = ConstructVMStringFromCString("return");
 
     switch(VMTokens->VMTokenCount)
@@ -2284,6 +2575,13 @@ void ParseTokensToASM(vm_tokens *VMTokens,
                                          ASMInstructions,
                                          InstructionCounts,
                                          ErrorList);
+                }
+                else if(VMStringsAreEqual(&VMTokens->VMTokens[0], &CallString))
+                {
+                    ParseCallCommand(VMTokens,
+                                     ASMInstructions,
+                                     InstructionCounts,
+                                     ErrorList);
                 }
                 else
                 {

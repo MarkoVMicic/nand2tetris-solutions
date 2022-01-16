@@ -88,8 +88,10 @@ struct instruction_counts
     uint32 LabelCount;
     uint32 GotoCount;
     uint32 IfGotoCount;
+
     // Function command counts
     uint32 FunctionCount;
+    uint32 CallCount;
 };
 
 
