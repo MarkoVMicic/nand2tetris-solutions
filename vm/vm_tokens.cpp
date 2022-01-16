@@ -2447,13 +2447,172 @@ internal void ParseCallCommand(vm_tokens *VMTokens,
 
 
 internal void ParseReturnCommand(vm_string *ASMInstructions,
+                                 instruction_counts *InstructionCounts,
                                  vm_error_list *ErrorList)
 {
-    // TODO(Marko): Implement
-    vm_string Error = ConstructVMStringFromCString("return command parsing not yet implemented. ");
-    AddErrorToErrorList(ErrorList, &Error);
-    ASMInstructions->CurrentLength = 0;
+    // TODO(Marko): Jump to return address can be done in the bootstrap code! 
+    //              Since we store return address in R14, we can simply emit 
+    //              that jump code once in a known location, and just emit a 
+    //              jump to that location, which then handles the jump to the 
+    //              return location. Is this better than what I have written 
+    //              down here? 
+    /*  NOTE(Marko): The return command will store LCL in a temp variable, 
+                     then use that temp variable to seek to the return 
+                     variable and put that in another temp variable. Once 
+                     that's done, it can use the first temp variable to 
+                     restore the THAT, THIS, ARG, and LCL of the function that 
+                     called it. Then it can use the return address (stored in 
+                     the second temp variable) to go to the call site and 
+                     continue executing. 
+
+                     This is realized as follows:
+                        // Store LCL in local variable
+                                @LCL
+                                D=A
+                                @R13
+                                M=D
+
+                        // Store return address in another temp variable
+                            // Store initial value in R14
+                                @R13
+                                D=M
+                                @R14
+                                M=D
+                            // loop
+                                @5
+                                D=A
+                                @R15
+                                M=D
+                                (RET_ADD_RETRIEVE_LOOPX)
+                                @R14
+                                M=M-1
+                                @R15
+                                M=M-1
+                                D=M
+                                @RET_ADD_RETRIEVE_LOOPX
+                                D;JGT
+                        // At this point, R13 contains pointer to FRAME
+                        //                R14 contains FRAME-5
+                        // If we dereference R14, we will retrieve the return 
+                        // address, so we can store it, again in R14
+                            // Dereference R14
+                                @R14
+                                A=M
+                            // Store return address
+                                D=M
+                                @R14
+                                M=D
+                        // The last value on the stack is the return value. 
+                        // Put that into the place pointed to by ARG
+                                @SP
+                                M=M-1
+                                A=M
+                                D=M
+                                @ARG
+                                A=M
+                                M=D
+                        // Place SP at ARG+1
+                                @ARG
+                                D=M
+                                D=D+1
+                                @SP
+                                M=D
+                        // Restore the memory segments of the caller
+                            // THAT is at *(R13-1)
+                                @R13
+                                M=M-1
+                                A=M
+                                D=M
+                                @THAT
+                                M=D
+                            // THIS is at *(R13-2)
+                                @R13
+                                M=M-1
+                                A=M
+                                D=M
+                                @THIS
+                                M=D
+                            // ARG is at *(R13-3)
+                                @R13
+                                M=M-1
+                                A=M
+                                D=M
+                                @ARG
+                                M=D
+                            // LCL is at *(R13-4)
+                                @R13
+                                M=M-1
+                                A=M
+                                D=M
+                                @LCL
+                                M=D
+                        // Go to the return address
+                                @R14
+                                A=M
+                                0;JMP
+    */
+    vm_string ReturnCountString = UInt32ToVMString(InstructionCounts->ReturnCount);
+    vm_string FirstPart = ConstructVMStringFromCString("@LCL\nD=A\n@R13\nM=D\n@R13\nD=M\n@R14\nM=D\n@5\nD=A\n@R15\nM=D\n(RET_ADD_RETRIEVE_LOOP");
+    vm_string SecondPart = ConstructVMStringFromCString(")\n@R14\nM=M-1\n@R15\nM=M-1\nD=M\n@RET_ADD_RETRIEVE_LOOP");
+    vm_string ThirdPart = ConstructVMStringFromCString("\nD;JGT\n@R14\nA=M\nD=M\n@R14\nM=D\n@SP\nM=M-1\nA=M\nD=M\n@ARG\nA=M\nM=D\n@ARG\nD=M\nD=D+1\n@SP\nM=D\n@R13\nM=M-1\nA=M\nD=M\n@THAT\nM=D\n@R13\nM=M-1\nA=M\nD=M\n@THIS\nM=D\n@R13\nM=M-1\nA=M\nD=M\n@ARG\nM=D\n@R13\nM=M-1\nA=M\nD=M\n@LCL\nM=D\n@R14\nA=M\n0;JMP\n");
+
+    ASMInstructions->CurrentLength = 
+        FirstPart.CurrentLength + 
+        ReturnCountString.CurrentLength + 
+        SecondPart.CurrentLength + 
+        ReturnCountString. CurrentLength + 
+        ThirdPart.CurrentLength;
+
+    if(ASMInstructions->MemorySize <= ASMInstructions->CurrentLength)
+    {
+        GrowVMString(ASMInstructions);
+    }
+
+    {
+        char *PasteCharLocation = ASMInstructions->Contents;
+        uint32 LengthRemaining = ASMInstructions->CurrentLength;
+
+        CopyVMString(FirstPart.Contents,
+                     FirstPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += FirstPart.CurrentLength;
+        LengthRemaining -= FirstPart.CurrentLength;
+
+        CopyVMString(ReturnCountString.Contents,
+                     ReturnCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ReturnCountString.CurrentLength;
+        LengthRemaining -= ReturnCountString.CurrentLength;
+
+        CopyVMString(SecondPart.Contents,
+                     SecondPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += SecondPart.CurrentLength;
+        LengthRemaining -= SecondPart.CurrentLength;
+
+        CopyVMString(ReturnCountString.Contents,
+                     ReturnCountString.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ReturnCountString.CurrentLength;
+        LengthRemaining -= ReturnCountString.CurrentLength;
+
+        CopyVMString(ThirdPart.Contents,
+                     ThirdPart.CurrentLength,
+                     PasteCharLocation,
+                     LengthRemaining);
+        PasteCharLocation += ThirdPart.CurrentLength;
+        LengthRemaining -= ThirdPart.CurrentLength;
+    }
+    ASMInstructions->Contents[ASMInstructions->CurrentLength] = '\0';
+    
+    InstructionCounts->ReturnCount++;
+    FreeVMStringContents(&ReturnCountString);
 }
+
 
 void ParseTokensToASM(vm_tokens *VMTokens,
                       vm_string *ASMInstructions,
@@ -2494,7 +2653,9 @@ void ParseTokensToASM(vm_tokens *VMTokens,
             
             if(VMStringsAreEqual(&VMTokens->VMTokens[0], &ReturnString))
             {
-                ParseReturnCommand(ASMInstructions, ErrorList);
+                ParseReturnCommand(ASMInstructions, 
+                                   InstructionCounts,
+                                   ErrorList);
             }
             else
             {

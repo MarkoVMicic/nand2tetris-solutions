@@ -91,6 +91,7 @@ struct instruction_counts
 
     // Function command counts
     uint32 FunctionCount;
+    uint32 ReturnCount;
     uint32 CallCount;
 };
 
